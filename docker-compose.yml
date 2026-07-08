@@ -4,6 +4,7 @@ services:
     image: postgres:16-alpine
     container_name: data-team-tools-db
     environment:
+      TZ: Asia/Shanghai
       POSTGRES_USER: ${PGUSER:-dtapp}
       POSTGRES_PASSWORD: ${PGPASSWORD:-dtapp123}
       POSTGRES_DB: ${PGDATABASE:-data_team_tools}
@@ -29,6 +30,7 @@ services:
     ports:
       - "${PORT:-3456}:3456"
     environment:
+      - TZ=Asia/Shanghai
       - PGHOST=db
       - PGPORT=5432
       - PGUSER=${PGUSER:-dtapp}

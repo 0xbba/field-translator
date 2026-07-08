@@ -20,6 +20,10 @@ RUN npm run build
 FROM node:20-alpine AS runtime
 WORKDIR /app
 
+# 设置时区为东八区
+ENV TZ=Asia/Shanghai
+RUN apk add --no-cache tzdata
+
 # 安装服务端依赖（仅 express + pg + cors + bcryptjs + jsonwebtoken）
 COPY server/package.json server/package-lock.json* ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
