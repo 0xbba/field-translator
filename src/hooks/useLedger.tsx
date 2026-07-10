@@ -42,6 +42,7 @@ export interface UseLedgerReturn {
   extractionRecordCount: string
   extractionExtractor: string
   extractionSupervisor: string
+  extractionRemark: string
 
   // 设置器
   setLedgerSearchInput: (v: string) => void
@@ -64,6 +65,7 @@ export interface UseLedgerReturn {
   setExtractionRecordCount: (v: string) => void
   setExtractionExtractor: (v: string) => void
   setExtractionSupervisor: (v: string) => void
+  setExtractionRemark: (v: string) => void
 
   // 操作
   fetchLedger: () => Promise<void>
@@ -116,6 +118,7 @@ export function useLedger(
   const [extractionRecordCount, setExtractionRecordCount] = useState('')
   const [extractionExtractor, setExtractionExtractor] = useState('')
   const [extractionSupervisor, setExtractionSupervisor] = useState('')
+  const [extractionRemark, setExtractionRemark] = useState('')
 
   // 排序状态
   const [ledgerSortBy, setLedgerSortBy] = useState<string | undefined>(undefined)
@@ -239,14 +242,14 @@ export function useLedger(
           // 写入提取记录
           if (hasExtraction) {
             try {
-              await Api.extractionAdd(parsedRequestNo, recordCountNum, extractionExtractor, extractionSupervisor)
+              await Api.extractionAdd(parsedRequestNo, recordCountNum, extractionExtractor, extractionSupervisor, extractionRemark)
               message.success('提取记录已登记')
             } catch (e: any) { message.error(e.message || '提取记录登记失败') }
           }
 
           fetchLedger(); if (showDeletedLedger) fetchDeletedL()
           setLedgerParsed(null); setLedgerPasteText('')
-          setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor('')
+          setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor(''); setExtractionRemark('')
         } catch (e: any) {
           message.error(e.message || '恢复记录失败')
         }
@@ -300,7 +303,7 @@ export function useLedger(
           } catch (e: any) { message.error(e.message || '提取记录登记失败') }
         }
         setLedgerParsed(null); setLedgerPasteText('')
-        setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor('')
+        setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor(''); setExtractionRemark('')
         return
       }
 
@@ -350,12 +353,12 @@ export function useLedger(
           // 写入提取记录
           if (hasExtraction && dataMode !== 'local' && !offlineMode) {
             try {
-              await Api.extractionAdd(parsedRequestNo, recordCountNum, extractionExtractor, extractionSupervisor)
+              await Api.extractionAdd(parsedRequestNo, recordCountNum, extractionExtractor, extractionSupervisor, extractionRemark)
               message.success('提取记录已登记')
             } catch (e: any) { message.error(e.message || '提取记录登记失败') }
           }
           setLedgerParsed(null); setLedgerPasteText('')
-          setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor('')
+          setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor(''); setExtractionRemark('')
         },
       })
       return
@@ -368,7 +371,7 @@ export function useLedger(
       const newRecord = { ...ledgerParsed, processor: ledgerParsed.processor || '', finishTime: parsedFinishTime || new Date().toLocaleString('zh-CN') } as LedgerRecord
       setLedgerData(prev => [newRecord, ...prev]); persistLocalLedger()
       setLedgerParsed(null); setLedgerPasteText(''); message.success('已写入台账')
-      setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor('')
+      setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor(''); setExtractionRemark('')
       return
     }
     try {
@@ -386,7 +389,7 @@ export function useLedger(
       }
       fetchLedger()
       setLedgerParsed(null); setLedgerPasteText('')
-      setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor('')
+      setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor(''); setExtractionRemark('')
     } catch (e: any) { message.error(e.message || '写入失败') }
   }, [ledgerParsed, dataMode, offlineMode, dbUrl, fetchLedger, persistLocalLedger, message, modal, ledgerData, extractionRecordCount, extractionExtractor, extractionSupervisor])
 
@@ -450,6 +453,7 @@ export function useLedger(
     // 重新解析时清空提取记录的临时填写
     setExtractionRecordCount('')
     setExtractionSupervisor('')
+    setExtractionRemark('')
   }, [ledgerPasteText])
 
   return {
@@ -458,11 +462,11 @@ export function useLedger(
     ledgerEditOpen, ledgerEditId, ledgerEditRecord,
     ledgerLogOpen, ledgerLogRecordId, ledgerLogFieldName, ledgerLogData, ledgerLogTotal, ledgerLogPage, ledgerLogTotalPages,
     showDeletedLedger, deletedLedgerData,
-    extractionRecordCount, extractionExtractor, extractionSupervisor,
+    extractionRecordCount, extractionExtractor, extractionSupervisor, extractionRemark,
     setLedgerSearchInput, setLedgerSearch, setLedgerPage, setLedgerPageSize, setLedgerPasteText, setLedgerParsed, setLedgerEditOpen, setLedgerEditId, setLedgerEditRecord,
     setLedgerLogOpen, setLedgerLogRecordId, setLedgerLogFieldName, setLedgerLogData, setLedgerLogTotal, setLedgerLogPage,
     setShowDeletedLedger, setDeletedLedgerData,
-    setExtractionRecordCount, setExtractionExtractor, setExtractionSupervisor,
+    setExtractionRecordCount, setExtractionExtractor, setExtractionSupervisor, setExtractionRemark,
     fetchLedger, markLedgerLoaded, addLedgerRecord, deleteLedgerRecord, updateLedgerRecord, restoreLedgerRecord, fetchLedgerLogs, openLedgerLogModal,
     setLedgerSortBy, setLedgerSortOrder,
     displayLedgerData,

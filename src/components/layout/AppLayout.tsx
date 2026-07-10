@@ -56,7 +56,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   onDismissDbError,
 }) => {
   return (
-    <Layout style={{ height: '100vh', overflow: 'hidden' }}>
+    <Layout style={{ height: '100vh' }}>
       {/* ====== 顶部导航条 ====== */}
       <Layout.Header style={{
         display: 'flex', alignItems: 'center', gap: 12,
@@ -118,7 +118,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       </Layout.Header>
 
       {/* ====== 下方左右布局 ====== */}
-      <Layout style={{ flex: 1, overflow: 'hidden' }}>
+      <Layout style={{ flex: 1 }}>
         {/* 左侧菜单 — inline 模式，可缩起/展开 */}
         <Layout.Sider
           width={180}
@@ -151,7 +151,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         </Layout.Sider>
 
         {/* 右侧内容 */}
-        <Layout style={{ overflow: 'hidden' }}>
+        <Layout id="main-content-area" style={{ position: 'relative', zIndex: 2 }}>
           {/* 标签页栏 */}
           <div style={{ background: '#fff', borderBottom: '1px solid #f0f0f0', padding: '4px 16px 0' }}>
             <Tabs

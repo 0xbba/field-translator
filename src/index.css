@@ -41,9 +41,14 @@
     padding-right: 0 !important;
   }
 
-  /* 去掉 Menu 最后一个菜单项的底部间距，使按钮上下留白对称 */
-  .ant-menu-inline .ant-menu-item:last-child {
-    margin-bottom: 0 !important;
+  /* 小屏下 RangePicker 只显示单月份面板，避免弹窗溢出 */
+  @media (max-width: 768px) {
+    .ant-picker-panels .ant-picker-panel:last-child {
+      display: none !important;
+    }
+    .ant-picker-panels {
+      flex-wrap: nowrap !important;
+    }
   }
 
 }

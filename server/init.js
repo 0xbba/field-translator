@@ -89,6 +89,7 @@ export async function ensureSchemaAndTables() {
           record_count INTEGER,
           extractor TEXT,
           supervisor TEXT,
+          remark TEXT,
           is_visible BOOLEAN NOT NULL DEFAULT true,
           create_date TIMESTAMP NOT NULL DEFAULT NOW(),
           last_modified TIMESTAMP NOT NULL DEFAULT NOW()
@@ -143,6 +144,16 @@ export async function ensureSchemaAndTables() {
       await client.query(t.ddl)
       if (t.index) await client.query(t.index)
       console.log(`[init] 表 "${pgSchema}.${t.name}" 已就绪`)
+    }
+
+    // 迁移：为已存在的 dt_data_extraction_records 表补充 remark 列
+    const remarkCol = await client.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'dt_data_extraction_records' AND column_name = 'remark'`,
+      [pgSchema]
+    )
+    if (remarkCol.rows.length === 0) {
+      await client.query(`ALTER TABLE ${pgSchema}.dt_data_extraction_records ADD COLUMN remark TEXT`)
+      console.log('[init] 已为 dt_data_extraction_records 添加 remark 列')
     }
 
     // 创建默认角色（仅在 roles 表为空时）

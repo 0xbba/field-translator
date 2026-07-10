@@ -278,7 +278,16 @@ function AppContent() {
 
 function App() {
   return (
-    <ConfigProvider locale={zhCN}>
+    <ConfigProvider locale={zhCN} getPopupContainer={node => {
+      if (node) {
+        let el: HTMLElement | null = node
+        while (el) {
+          if (el.id === 'main-content-area') return el
+          el = el.parentElement
+        }
+      }
+      return document.body
+    }}>
       <AntApp>
         <AppContent />
       </AntApp>

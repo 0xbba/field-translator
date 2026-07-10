@@ -30,6 +30,7 @@ export interface ExtractionRecord {
   recordCount: number
   extractor: string
   supervisor: string
+  remark: string
   createDate?: string
   isVisible?: boolean
 }

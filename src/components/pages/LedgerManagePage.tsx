@@ -53,6 +53,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
   const [addRecordCount, setAddRecordCount] = useState('')
   const [addExtractor, setAddExtractor] = useState('')
   const [addSupervisor, setAddSupervisor] = useState('')
+  const [addRemark, setAddRemark] = useState('')
 
   // 加载用户 displayName 列表
   useEffect(() => {
@@ -81,6 +82,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
     setAddRecordCount('')
     setAddExtractor(showAdd && currentUser?.displayName ? currentUser.displayName : '')
     setAddSupervisor('')
+    setAddRemark('')
     setExtractionOpen(true)
     fetchExtractions(requestNo)
   }
@@ -89,12 +91,13 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
     const count = parseInt(addRecordCount, 10)
     if (isNaN(count) || count <= 0) { message.warning('请输入有效的数据条数'); return }
     try {
-      await Api.extractionAdd(extractionRequestNo, count, addExtractor, addSupervisor)
+      await Api.extractionAdd(extractionRequestNo, count, addExtractor, addSupervisor, addRemark)
       message.success('提取记录已新增')
       setExtractionAdding(false)
       setAddRecordCount('')
       setAddExtractor('')
       setAddSupervisor('')
+      setAddRemark('')
       fetchExtractions(extractionRequestNo)
     } catch (e: any) { message.error(e.message || '新增失败') }
   }
@@ -122,6 +125,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
         record_count: extractionEditRecord.recordCount,
         extractor: extractionEditRecord.extractor,
         supervisor: extractionEditRecord.supervisor,
+        remark: extractionEditRecord.remark,
       })
       message.success('已更新')
       setExtractionEditId(null)
@@ -200,10 +204,10 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
           { title: '序号', key: '_idx', width: 60, align: 'center' as const, render: (_, __, index) => (ledgerPage - 1) * ledgerPageSize + index + 1 },
           { title: '数据单号', dataIndex: 'requestNo', key: 'requestNo', width: 200, sorter: true, render: v => <Typography.Text copyable code style={{ fontSize: '0.8rem' }}>{v}</Typography.Text> },
           { title: '申请时间', dataIndex: 'requestTime', key: 'requestTime', width: 170, sorter: true, render: v => v ? dayjs(v).format('YYYY-MM-DD HH:mm:ss') : '-' },
-          { title: '申请员工', dataIndex: 'applicant', key: 'applicant', width: 110, sorter: true },
+          { title: '申请员工', dataIndex: 'applicant', key: 'applicant', width: 110, sorter: true, ellipsis: true },
           { title: '申请员工电话', dataIndex: 'applicantPhone', key: 'applicantPhone', width: 120, sorter: true, render: v => <Typography.Text copyable style={{ fontSize: '0.8rem' }}>{v}</Typography.Text> },
-          { title: '申请部门', dataIndex: 'applicantDept', key: 'applicantDept', width: 160, sorter: true },
-          { title: '处理人', dataIndex: 'processor', key: 'processor', width: 110, sorter: true },
+          { title: '申请部门', dataIndex: 'applicantDept', key: 'applicantDept', width: 160, sorter: true, ellipsis: true },
+          { title: '处理人', dataIndex: 'processor', key: 'processor', width: 110, sorter: true, ellipsis: true },
           { title: '申请标题', dataIndex: 'requestTitle', key: 'requestTitle', width: 200, sorter: true, ellipsis: true },
           { title: '申请事由', dataIndex: 'requestReason', key: 'requestReason', width: 200, sorter: true, ellipsis: true },
           { title: '申请数据内容', dataIndex: 'requestDataContent', key: 'requestDataContent', width: 200, sorter: true, ellipsis: true },
@@ -262,7 +266,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
         <Collapse
           activeKey={extractionAdding ? ['add'] : []}
           onChange={() => {
-            if (extractionAdding) { setExtractionAdding(false); setAddRecordCount(''); setAddExtractor(''); setAddSupervisor('') }
+            if (extractionAdding) { setExtractionAdding(false); setAddRecordCount(''); setAddExtractor(''); setAddSupervisor(''); setAddRemark('') }
             else { setExtractionAdding(true); if (currentUser?.displayName && !addExtractor) setAddExtractor(currentUser.displayName) }
           }}
           ghost
@@ -283,8 +287,12 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
                   <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>监督人</span>
                   <AutoComplete value={addSupervisor} onChange={v => setAddSupervisor(v)} options={supervisorOptions} style={{ flex: 1 }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} placeholder="请选择或输入监督人" />
                 </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>备注</span>
+                  <Input value={addRemark} onChange={e => setAddRemark(e.target.value)} placeholder="选填" style={{ flex: 1 }} onPressEnter={handleExtractionAdd} />
+                </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
-                  <Button size="small" onClick={() => { setExtractionAdding(false); setAddRecordCount(''); setAddExtractor(''); setAddSupervisor('') }}>取消</Button>
+                  <Button size="small" onClick={() => { setExtractionAdding(false); setAddRecordCount(''); setAddExtractor(''); setAddSupervisor(''); setAddRemark('') }}>取消</Button>
                   <Button type="primary" size="small" onClick={handleExtractionAdd}>确认新增</Button>
                 </div>
               </div>
@@ -297,7 +305,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
           dataSource={extractionData}
           rowKey="id"
           pagination={false}
-          scroll={{ x: 580 }}
+          scroll={{ x: 730 }}
           locale={{ emptyText: '暂无提取记录' }}
           columns={[
             {
@@ -316,6 +324,13 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
             },
             {
               title: '监督人', dataIndex: 'supervisor', key: 'supervisor', width: 100, sorter: (a, b) => (a.supervisor || '').localeCompare(b.supervisor || ''),
+              render: (v, record) => {
+                const style = record.isVisible === false ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.25)' } : {}
+                return <span style={style}>{v || '-'}</span>
+              },
+            },
+            {
+              title: '备注', dataIndex: 'remark', key: 'remark', width: 150, ellipsis: true,
               render: (v, record) => {
                 const style = record.isVisible === false ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.25)' } : {}
                 return <span style={style}>{v || '-'}</span>
@@ -370,6 +385,10 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>监督人</span>
                 <AutoComplete value={extractionEditRecord.supervisor || ''} onChange={v => setExtractionEditRecord({ ...extractionEditRecord, supervisor: v })} options={supervisorOptions} style={{ flex: 1 }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>备注</span>
+                <Input value={extractionEditRecord.remark || ''} onChange={e => setExtractionEditRecord({ ...extractionEditRecord, remark: e.target.value })} placeholder="选填" style={{ flex: 1 }} />
               </div>
             </div>
           )}

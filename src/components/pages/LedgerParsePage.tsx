@@ -21,9 +21,11 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
     extractionRecordCount,
     extractionExtractor,
     extractionSupervisor,
+    extractionRemark,
     setExtractionRecordCount,
     setExtractionExtractor,
     setExtractionSupervisor,
+    setExtractionRemark,
   } = ledgerHook
 
   // 当解析结果出现且取数人为空时，默认填入当前用户名
@@ -76,6 +78,7 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
     setLedgerParsed(null)
     setExtractionRecordCount('')
     setExtractionSupervisor('')
+    setExtractionRemark('')
   }
 
   return (
@@ -133,19 +136,15 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
           <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 8, marginTop: 2 }}>
             填写数据条数后，写入台账时将同时登记提取记录
           </p>
-          <Descriptions size="small" bordered column={{ xs: 1, sm: 2, md: 3 }}>
-            <Descriptions.Item label="数据条数">
-              <Input size="small" value={extractionRecordCount} onChange={e => setExtractionRecordCount(e.target.value.replace(/[^\d]/g, ''))} placeholder="选填" style={{ width: '100%' }} />
-            </Descriptions.Item>
-            <Descriptions.Item label="取数人">
-              <Input size="small" value={extractionExtractor} onChange={e => setExtractionExtractor(e.target.value)} placeholder="默认当前用户" style={{ width: '100%' }} />
-            </Descriptions.Item>
-            <Descriptions.Item label="监督人">
-              <AutoComplete size="small" value={extractionSupervisor} onChange={v => setExtractionSupervisor(v)} options={supervisorOptions} placeholder="选填" style={{ width: '100%' }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} />
-            </Descriptions.Item>
-          </Descriptions>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0 }}>数据条数</span>
+            <Input size="small" value={extractionRecordCount} onChange={e => setExtractionRecordCount(e.target.value.replace(/[^\d]/g, ''))} placeholder="选填" style={{ flex: 1 }} />
+            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0 }}>取数人</span>
+            <Input size="small" value={extractionExtractor} onChange={e => setExtractionExtractor(e.target.value)} placeholder="默认当前用户" style={{ flex: 1 }} />
+            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0 }}>监督人</span>
+            <AutoComplete size="small" value={extractionSupervisor} onChange={v => setExtractionSupervisor(v)} options={supervisorOptions} placeholder="选填" style={{ flex: 1 }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} />
+            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0 }}>备注</span>
+            <Input size="small" value={extractionRemark} onChange={e => setExtractionRemark(e.target.value)} placeholder="选填" style={{ flex: 1 }} />
             <Button type="primary" size="small" onClick={handleWrite} icon={<PlusCircleOutlined style={{ fontSize: 14 }} />}>写入台账</Button>
           </div>
         </Card>

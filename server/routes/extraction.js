@@ -12,7 +12,7 @@ router.get('/:requestNo', async (req, res) => {
   try {
     const { requestNo } = req.params
     const result = await pool.query(
-      'SELECT id, request_no, record_count, extractor, supervisor, is_visible, create_date FROM dt_data_extraction_records WHERE request_no = $1 ORDER BY create_date DESC',
+      'SELECT id, request_no, record_count, extractor, supervisor, remark, is_visible, create_date FROM dt_data_extraction_records WHERE request_no = $1 ORDER BY create_date DESC',
       [requestNo]
     )
     res.json(result.rows.map(r => ({
@@ -21,6 +21,7 @@ router.get('/:requestNo', async (req, res) => {
       recordCount: r.record_count ?? 0,
       extractor: r.extractor || '',
       supervisor: r.supervisor || '',
+      remark: r.remark || '',
       createDate: r.create_date || '',
       isVisible: r.is_visible !== false,
     })))
@@ -33,12 +34,12 @@ router.get('/:requestNo', async (req, res) => {
 // 新增提取记录
 router.post('/', requirePerm('ledger_parse'), async (req, res) => {
   try {
-    const { request_no, record_count, extractor, supervisor } = req.body
+    const { request_no, record_count, extractor, supervisor, remark } = req.body
     if (!request_no) return res.status(400).json({ error: 'request_no is required' })
     const result = await pool.query(
-      `INSERT INTO dt_data_extraction_records (request_no, record_count, extractor, supervisor, create_date, last_modified)
-       VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING id`,
-      [request_no, record_count || null, extractor || null, supervisor || null]
+      `INSERT INTO dt_data_extraction_records (request_no, record_count, extractor, supervisor, remark, create_date, last_modified)
+       VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING id`,
+      [request_no, record_count || null, extractor || null, supervisor || null, remark || null]
     )
     await writeLog(LOG_TABLE, { operation: 'INSERT', recordId: result.rows[0].id, newValue: null, ...getUserInfo(req) })
     res.json({ id: result.rows[0].id })
@@ -52,15 +53,15 @@ router.post('/', requirePerm('ledger_parse'), async (req, res) => {
 router.put('/:id', requirePerm('ledger_edit'), async (req, res) => {
   try {
     const { id } = req.params
-    const { record_count, extractor, supervisor } = req.body
-    const old = await pool.query('SELECT record_count, extractor, supervisor FROM dt_data_extraction_records WHERE id = $1', [id])
+    const { record_count, extractor, supervisor, remark } = req.body
+    const old = await pool.query('SELECT record_count, extractor, supervisor, remark FROM dt_data_extraction_records WHERE id = $1', [id])
     const oldRow = old.rows[0]
     if (!oldRow) return res.status(404).json({ error: '记录不存在' })
     await pool.query(
-      'UPDATE dt_data_extraction_records SET record_count = $1, extractor = $2, supervisor = $3, last_modified = NOW() WHERE id = $4',
-      [record_count ?? null, extractor ?? null, supervisor ?? null, id]
+      'UPDATE dt_data_extraction_records SET record_count = $1, extractor = $2, supervisor = $3, remark = $4, last_modified = NOW() WHERE id = $5',
+      [record_count ?? null, extractor ?? null, supervisor ?? null, remark ?? null, id]
     )
-    const labelMap = { record_count: '数据条数', extractor: '取数人', supervisor: '监督人' }
+    const labelMap = { record_count: '数据条数', extractor: '取数人', supervisor: '监督人', remark: '备注' }
     for (const [k, label] of Object.entries(labelMap)) {
       const oldVal = String(oldRow[k] ?? '')
       const newVal = String(req.body[k] ?? '')

@@ -25,6 +25,7 @@ describe('P2: 提取记录 CRUD', () => {
         record_count: 100,
         extractor: '取数人A',
         supervisor: '监督人B',
+        remark: '测试备注',
       })
     expect(res.status).toBe(200)
     expect(res.body.id).toBeTruthy()
@@ -53,7 +54,7 @@ describe('P2: 提取记录 CRUD', () => {
     const res = await request(app)
       .put(`/api/extraction/${createdId}`)
       .set('Authorization', `Bearer ${adminToken}`)
-      .send({ record_count: 200, extractor: '取数人C' })
+      .send({ record_count: 200, extractor: '取数人C', remark: '更新备注' })
     expect(res.status).toBe(200)
     expect(res.body.success).toBe(true)
   })

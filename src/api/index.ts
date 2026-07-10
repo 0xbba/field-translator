@@ -168,14 +168,15 @@ export const Api = {
       recordCount: r.recordCount ?? r.record_count ?? 0,
       extractor: r.extractor ?? '',
       supervisor: r.supervisor ?? '',
+      remark: r.remark ?? '',
       createDate: r.createDate ?? r.create_date ?? '',
       isVisible: r.isVisible !== false,
     }))
   },
-  async extractionAdd(requestNo: string, recordCount: number, extractor: string, supervisor: string) {
-    return request('/api/extraction', { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ request_no: requestNo, record_count: recordCount, extractor, supervisor }) })
+  async extractionAdd(requestNo: string, recordCount: number, extractor: string, supervisor: string, remark: string = '') {
+    return request('/api/extraction', { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ request_no: requestNo, record_count: recordCount, extractor, supervisor, remark }) })
   },
-  async extractionUpdate(id: number, data: { record_count?: number; extractor?: string; supervisor?: string }) {
+  async extractionUpdate(id: number, data: { record_count?: number; extractor?: string; supervisor?: string; remark?: string }) {
     return request(`/api/extraction/${id}`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify(data) })
   },
   async extractionDelete(id: number) { return request(`/api/extraction/${id}`, { method: 'DELETE' }) },
