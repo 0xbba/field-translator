@@ -136,15 +136,23 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
           <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 8, marginTop: 2 }}>
             填写数据条数后，写入台账时将同时登记提取记录
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0 }}>数据条数</span>
-            <Input size="small" value={extractionRecordCount} onChange={e => setExtractionRecordCount(e.target.value.replace(/[^\d]/g, ''))} placeholder="选填" style={{ flex: 1 }} />
-            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0 }}>取数人</span>
-            <Input size="small" value={extractionExtractor} onChange={e => setExtractionExtractor(e.target.value)} placeholder="默认当前用户" style={{ flex: 1 }} />
-            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0 }}>监督人</span>
-            <AutoComplete size="small" value={extractionSupervisor} onChange={v => setExtractionSupervisor(v)} options={supervisorOptions} placeholder="选填" style={{ flex: 1 }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} />
-            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0 }}>备注</span>
-            <Input size="small" value={extractionRemark} onChange={e => setExtractionRemark(e.target.value)} placeholder="选填" style={{ flex: 1 }} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 180 }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0, width: 56 }}>数据条数</span>
+              <Input size="small" value={extractionRecordCount} onChange={e => setExtractionRecordCount(e.target.value.replace(/[^\d]/g, ''))} placeholder="选填" style={{ flex: 1 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 180 }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0, width: 56 }}>取数人</span>
+              <Input size="small" value={extractionExtractor} onChange={e => setExtractionExtractor(e.target.value)} placeholder="默认当前用户" style={{ flex: 1 }} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 180 }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0, width: 56 }}>监督人</span>
+              <AutoComplete size="small" value={extractionSupervisor} onChange={v => setExtractionSupervisor(v)} options={supervisorOptions} placeholder="选填" style={{ flex: 1 }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 180 }}>
+              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0, width: 56 }}>备注</span>
+              <Input size="small" value={extractionRemark} onChange={e => setExtractionRemark(e.target.value)} placeholder="选填" style={{ flex: 1 }} />
+            </div>
             <Button type="primary" size="small" onClick={handleWrite} icon={<PlusCircleOutlined style={{ fontSize: 14 }} />}>写入台账</Button>
           </div>
         </Card>

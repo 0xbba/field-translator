@@ -158,6 +158,10 @@ function AppContent() {
     })
   }, [])
 
+  const handleSiderOpenChange = useCallback((keys: string[]) => {
+    setSiderOpenKeys(keys)
+  }, [])
+
   const hasManagePerm = useMemo(() => ['manage_edit','manage_delete','manage_restore','manage_log'].some(hasPerm), [hasPerm])
   const hasLedgerManagePerm = useMemo(() => ['ledger_edit','ledger_delete','ledger_restore','ledger_log'].some(hasPerm), [hasPerm])
 
@@ -262,6 +266,7 @@ function AppContent() {
         onTabClose={handleTabClose}
         onTabChange={handleTabChange}
         onToggleSider={handleToggleSider}
+        onSiderOpenChange={handleSiderOpenChange}
 
         onLogout={() => { logout(); setTab('translate'); setOpenTabs([{ key: 'translate', label: '翻译' }]) }}
         onChangePassword={() => setPasswordModalOpen(true)}

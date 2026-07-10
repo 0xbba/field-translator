@@ -96,6 +96,8 @@ export default function RolesPage({ rolesData, allPerms, fetchRoles, message }: 
         open={roleModalOpen}
         title={roleEditMode === 'add' ? '新增角色' : '编辑角色'}
         onCancel={() => setRoleModalOpen(false)}
+        centered
+        getContainer={() => document.body}
         onOk={async () => {
           const cleanPerms = (roleForm.permissions || []).filter((k: string) => permLeafKeys.has(k))
           if (roleEditMode === 'add') {

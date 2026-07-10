@@ -9,7 +9,7 @@ export const LOG_PAGE_SIZE = 5
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const
 
 // ============ 版本号 ============
-export const APP_VERSION = 'v1.11.4.20260710'
+export const APP_VERSION = 'v1.11.5.20260710'
 
 // ============ 多账期占位符 ============
 export const MD_PLACEHOLDERS: Record<string, string> = {

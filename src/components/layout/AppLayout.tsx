@@ -30,6 +30,7 @@ export interface AppLayoutProps {
   onTabClose: (key: string) => void
   onTabChange: (key: string) => void
   onToggleSider: () => void
+  onSiderOpenChange: (keys: string[]) => void
   onLogout: () => void
   onChangePassword: () => void
   onDismissDbError: () => void
@@ -51,6 +52,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   onTabClose,
   onTabChange,
   onToggleSider,
+  onSiderOpenChange,
   onLogout,
   onChangePassword,
   onDismissDbError,
@@ -121,6 +123,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
       <Layout style={{ flex: 1 }}>
         {/* 左侧菜单 — inline 模式，可缩起/展开 */}
         <Layout.Sider
+          collapsible
           width={180}
           collapsedWidth={64}
           collapsed={siderCollapsed}
@@ -134,7 +137,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               <Menu
                 mode="inline"
                 selectedKeys={[tab]}
-                {...(!siderCollapsed && { openKeys: siderOpenKeys })}
+                openKeys={siderOpenKeys}
+                onOpenChange={onSiderOpenChange}
                 onClick={({ key }) => onMenuClick(key)}
                 items={menuItems as any}
                 style={{ borderInlineEnd: 'none' }}

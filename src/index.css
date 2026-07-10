@@ -42,7 +42,7 @@
   }
 
   /* 小屏下 RangePicker 只显示单月份面板，避免弹窗溢出 */
-  @media (max-width: 768px) {
+  @media (max-width: 900px) {
     .ant-picker-panels .ant-picker-panel:last-child {
       display: none !important;
     }

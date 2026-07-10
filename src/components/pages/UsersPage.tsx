@@ -63,6 +63,8 @@ export default function UsersPage({ usersData, rolesData, fetchUsers, currentUse
         open={userModalOpen}
         title={userEditMode === 'add' ? '新增用户' : '编辑用户'}
         onCancel={() => setUserModalOpen(false)}
+        centered
+        getContainer={() => document.body}
         onOk={async () => {
           if (userEditMode === 'add') {
             if (!userForm.username || !userForm.password) { message.warning('用户名和密码必填'); return }
