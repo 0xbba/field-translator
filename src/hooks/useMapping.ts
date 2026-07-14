@@ -52,6 +52,7 @@ export interface UseMappingReturn {
   unmatchedColumns: ColumnData[]
   translatedCount: number
   newMappingCount: number
+  duplicateTranslations: { chinese: string; indices: number[] }[]
   batchParsedResult: BatchParseItem[]
   handleBatchTransCopy: () => void
   handleBatchTransConfirm: () => void
@@ -254,6 +255,23 @@ export function useMapping(
   const translatedCount = useMemo(() => columns.filter(c => displayTranslation(c) !== c.original).length, [columns])
   const newMappingCount = columns.filter((_, idx) => canSaveCol(idx)).length
 
+  // 重复翻译检测：翻译结果相同但原始字段名不同的字段分组
+  const duplicateTranslations = useMemo(() => {
+    const map = new Map<string, number[]>() // chinese → column indices
+    columns.forEach((c, idx) => {
+      const t = displayTranslation(c)
+      if (!t || t === c.original) return // 跳过空翻译和未翻译的
+      const arr = map.get(t) || []
+      arr.push(idx)
+      map.set(t, arr)
+    })
+    const groups: { chinese: string; indices: number[] }[] = []
+    map.forEach((indices, chinese) => {
+      if (indices.length > 1) groups.push({ chinese, indices })
+    })
+    return groups
+  }, [columns])
+
   // 批量翻译
   const batchParsedResult = useMemo((): BatchParseItem[] => {
     if (!batchTransText.trim()) return []
@@ -335,7 +353,7 @@ export function useMapping(
     fetchDbMapping, persistMapping,
     handleImportFile, handlePasteChange, selectAlternative, updateTranslation, canSaveCol, saveToMapping, saveAllNewToMapping,
     handleCopyTranslation, handleCopyAlias, handleCopyComment,
-    matchedColumns, multiMatchColumns, unmatchedColumns, translatedCount, newMappingCount,
+    matchedColumns, multiMatchColumns, unmatchedColumns, translatedCount, newMappingCount, duplicateTranslations,
     batchParsedResult, handleBatchTransCopy, handleBatchTransConfirm,
     handleExportFull,
     draggerCustomRequest,
