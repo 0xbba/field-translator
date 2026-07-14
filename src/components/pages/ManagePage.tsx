@@ -162,11 +162,11 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
         locale={{ emptyText: manageHook.manageSearch ? '无匹配结果' : '暂无对照记录' }}
         columns={[
           {
-            title: '#',
+            title: '序号',
             key: '_idx',
             width: 48,
             align: 'center',
-            render: (_, __, index) => index + 1,
+            render: (_, __, index) => (safePage - 1) * manageHook.managePageSize + index + 1,
           },
           {
             title: '英文字段',
