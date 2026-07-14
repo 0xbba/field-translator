@@ -10,6 +10,7 @@ function parseLedgerText(text) {
   const standaloneLabels = new Set([
     '标题', '需求分类', '需求类型', '清单条数', '清单交付方式',
     '申请事由', '数据内容', '备注', '说明', '附件',
+    '分管申请部门的公司领导', '省公司分管申请部门领导',
   ])
 
   const knownLabels = new Set([
@@ -17,6 +18,7 @@ function parseLedgerText(text) {
     '标题', '需求分类', '需求类型', '清单条数', '清单交付方式',
     '申请事由', '数据内容', '备注', '附件',
     '基本信息', '附件信息', '审核过程',
+    '分管申请部门的公司领导', '省公司分管申请部门领导',
   ])
 
   const shouldStopContinuation = (line) => {
@@ -193,7 +195,7 @@ function parseLedgerText(text) {
   let finishTime = ''
 
   const acceptorStage = approvalStages.find(s =>
-    s.name.includes('数据需求承接') || s.name.includes('数据承接')
+    s.name.includes('数据需求承接') || s.name.includes('数据承接') || s.name.includes('数据统计人员')
   )
 
   if (acceptorStage && acceptorStage.completedAt) {

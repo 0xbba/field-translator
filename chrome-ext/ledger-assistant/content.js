@@ -36,6 +36,12 @@ function extractFromDOM() {
       if (t) { result[label] = t; continue }
     }
 
+    const tagText = item.querySelector('.el-tag .el-select__tags-text')
+    if (tagText) {
+      const t = tagText.textContent?.trim()
+      if (t) { result[label] = t; continue }
+    }
+
     const radioText = item.querySelector('.el-radio-group .el-radio.is-checked .el-radio__label')
     if (radioText) {
       result[label] = radioText.textContent?.trim() || ''
@@ -66,10 +72,10 @@ function extractFromDOM() {
   if (timeMatch) result['申请时间'] = timeMatch[1]
 
   // 4. 顶部信息：申请人
-  const applicantMatch = bodyText.match(/([\u4e00-\u9fa5]{2,4}_[\u4e00-\u9fa5]{2,6}\(\d{7,15}[,，][^)]+\))/)
+  const applicantMatch = bodyText.match(/([^\s(（_]+_[^\s(（(]+[\(（]\d{7,15}[,，][^)]+\))/)
   if (applicantMatch) {
     const full = applicantMatch[1]
-    const m = full.match(/^([\u4e00-\u9fa5]{2,4})_[\u4e00-\u9fa5]{2,6}\((\d{7,15})[,，]\s*(.+?)\)$/)
+    const m = full.match(/^([^\s(（_]+)_[^\s(（(]+[\(（](\d{7,15})[,，]\s*(.+?)[\)）]$/)
     if (m) {
       result['applicant'] = m[1]
       result['applicantPhone'] = m[2]
@@ -88,10 +94,10 @@ function extractFromDOM() {
       if (cells.length < 6) continue
       const stepName = cells[0]?.textContent?.trim()
       const handlerRaw = cells[1]?.textContent?.trim()
-      // 提取处理人姓名：匹配 "姓名_xx市" 格式
-      const nameMatch = handlerRaw?.match(/([\u4e00-\u9fa5]{2,4}_[\u4e00-\u9fa5]{2,6})/)
+      // 提取处理人姓名：匹配 "姓名_xx市" 格式（姓名可能含数字，如"王波6"）
+      const nameMatch = handlerRaw?.match(/([^\s(（_]+_[^\s(（_]+)/)
       const personFull = nameMatch?.[1] || ''
-      const person = personFull.replace(/_[\u4e00-\u9fa5]+$/, '') // 去掉 _xx市 后缀
+      const person = personFull.replace(/_[^\s(（_]+$/, '') // 去掉 _xx市 后缀
       // 完成时间
       const finishTimeRaw = cells[5]?.textContent?.trim()?.replace(/\s+/g, ' ')
       const ftMatch = finishTimeRaw?.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}:\d{2})/)
@@ -121,7 +127,7 @@ function extractFromDOM() {
     const currentStage = approvalStages[currentIdx]
     const prevStage = currentIdx > 0 ? approvalStages[currentIdx - 1] : null
 
-    const isAcceptor = (name) => name?.includes('数据需求承接') || name?.includes('数据承接')
+    const isAcceptor = (name) => name?.includes('数据需求承接') || name?.includes('数据承接') || name?.includes('数据统计人员')
     const isCoordinator = (name) => name?.includes('数据需求统筹') || name?.includes('需求统筹')
 
     if (isAcceptor(currentStage.name)) {

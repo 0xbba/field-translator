@@ -30,6 +30,7 @@ export default function RolesPage({ rolesData, allPerms, fetchRoles, message }: 
       ledger_view: '台账查看', ledger_edit: '台账编辑',
       ledger_delete: '台账删除', ledger_restore: '台账恢复', ledger_log: '台账日志',
       user_manage: '用户管理', role_manage: '角色管理',
+      announcement_manage: '公告管理',
     }
     const buildNode = (item: any): any => {
       if (item.children) {

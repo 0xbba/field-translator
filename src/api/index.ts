@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { authHeaders, jsonHeaders } from '../utils/auth'
-import type { MappingItem, LedgerRecord, LogEntry, RoleForm, UserForm, ExtractionRecord, ApiToken } from '../types'
+import type { MappingItem, LedgerRecord, LogEntry, RoleForm, UserForm, ExtractionRecord, ApiToken, Announcement } from '../types'
 
 const BASE = ''
 
@@ -204,4 +204,49 @@ export const Api = {
   },
   async tokenList() { return request<ApiToken[]>('/api/auth/tokens') },
   async tokenRevoke(id: number) { return request(`/api/auth/tokens/${id}`, { method: 'DELETE' }) },
+
+  // ============ 公告 ============
+  async announcementList(): Promise<Announcement[]> {
+    const raw: any[] = await request('/api/announcements')
+    return raw.map(r => ({
+      id: r.id,
+      content: r.content,
+      createDate: r.createDate ?? r.create_date ?? '',
+    }))
+  },
+  async announcementAll(page?: number, pageSize?: number) {
+    const raw = await request<any>(`/api/announcements/all?page=${page || 1}&pageSize=${pageSize || 10}`)
+    return {
+      total: raw.total,
+      page: raw.page,
+      pageSize: raw.pageSize,
+      totalPages: raw.totalPages,
+      data: (raw.rows || []).map((r: any) => ({
+        id: r.id,
+        content: r.content,
+        isActive: r.isActive ?? r.is_active ?? true,
+        expiresAt: r.expiresAt ?? r.expires_at ?? null,
+        isVisible: r.isVisible,
+        userName: r.userName ?? r.user_name ?? '',
+        createDate: r.createDate ?? r.create_date ?? '',
+        lastModified: r.lastModified ?? r.last_modified ?? '',
+      })) as Announcement[],
+    }
+  },
+  async announcementAdd(content: string, isActive: boolean = true, expiresAt: string | null = null) {
+    return request('/api/announcements', { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ content, is_active: isActive, expires_at: expiresAt }) })
+  },
+  async announcementUpdate(id: number, data: { content?: string; isActive?: boolean; expiresAt?: string | null }) {
+    const body: Record<string, any> = {}
+    if (data.content !== undefined) body.content = data.content
+    if (data.isActive !== undefined) body.is_active = data.isActive
+    if (data.expiresAt !== undefined) body.expires_at = data.expiresAt
+    return request(`/api/announcements/${id}`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify(body) })
+  },
+  async announcementDelete(id: number) {
+    return request(`/api/announcements/${id}`, { method: 'DELETE' })
+  },
+  async announcementRestore(id: number) {
+    return request(`/api/announcements/${id}/restore`, { method: 'PUT' })
+  },
 }

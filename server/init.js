@@ -151,6 +151,36 @@ export async function ensureSchemaAndTables() {
         )`,
         index: `CREATE INDEX IF NOT EXISTS idx_api_tokens_user ON ${pgSchema}.dt_api_tokens (user_id)`,
       },
+      {
+        name: 'dt_announcements',
+        ddl: `CREATE TABLE IF NOT EXISTS ${pgSchema}.dt_announcements (
+          id SERIAL PRIMARY KEY,
+          content TEXT NOT NULL,
+          is_active BOOLEAN NOT NULL DEFAULT true,
+          expires_at TIMESTAMP,
+          is_visible BOOLEAN NOT NULL DEFAULT true,
+          user_id INTEGER,
+          user_name TEXT,
+          create_date TIMESTAMP NOT NULL DEFAULT NOW(),
+          last_modified TIMESTAMP NOT NULL DEFAULT NOW()
+        )`,
+        index: null,
+      },
+      {
+        name: 'dt_announcements_log',
+        ddl: `CREATE TABLE IF NOT EXISTS ${pgSchema}.dt_announcements_log (
+          id SERIAL PRIMARY KEY,
+          operation TEXT NOT NULL,
+          record_id INTEGER,
+          field_name TEXT,
+          old_value TEXT,
+          new_value TEXT,
+          user_id INTEGER,
+          user_name TEXT,
+          operation_date TIMESTAMP NOT NULL DEFAULT NOW()
+        )`,
+        index: `CREATE INDEX IF NOT EXISTS idx_ann_log_record_id ON ${pgSchema}.dt_announcements_log (record_id)`,
+      },
     ]
 
     for (const t of tables) {
@@ -179,10 +209,28 @@ export async function ensureSchemaAndTables() {
       console.log('[init] 已为 dt_api_tokens 添加 expires_at 列')
     }
 
+    // 迁移：为已存在的 dt_announcements 表补充 is_active 和 expires_at 列
+    const annIsActiveCol = await client.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'dt_announcements' AND column_name = 'is_active'`,
+      [pgSchema]
+    )
+    if (annIsActiveCol.rows.length === 0) {
+      await client.query(`ALTER TABLE ${pgSchema}.dt_announcements ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT true`)
+      console.log('[init] 已为 dt_announcements 添加 is_active 列')
+    }
+    const annExpiresAtCol = await client.query(
+      `SELECT column_name FROM information_schema.columns WHERE table_schema = $1 AND table_name = 'dt_announcements' AND column_name = 'expires_at'`,
+      [pgSchema]
+    )
+    if (annExpiresAtCol.rows.length === 0) {
+      await client.query(`ALTER TABLE ${pgSchema}.dt_announcements ADD COLUMN expires_at TIMESTAMP`)
+      console.log('[init] 已为 dt_announcements 添加 expires_at 列')
+    }
+
     // 创建默认角色（仅在 roles 表为空时）
     const roleCount = await client.query('SELECT COUNT(*) as cnt FROM dt_roles')
     if (Number(roleCount.rows[0].cnt) === 0) {
-      const allPerms = JSON.stringify(['translate','manage_view','manage_import','manage_edit','manage_delete','manage_restore','manage_log','insertgen','multidate','ledger_parse','ledger_view','ledger_edit','ledger_delete','ledger_restore','ledger_log','user_manage','role_manage'])
+      const allPerms = JSON.stringify(['translate','manage_view','manage_import','manage_edit','manage_delete','manage_restore','manage_log','insertgen','multidate','ledger_parse','ledger_view','ledger_edit','ledger_delete','ledger_restore','ledger_log','user_manage','role_manage','announcement_manage'])
       const userPerms = JSON.stringify(['translate','manage_view','manage_import','manage_edit','manage_log','insertgen','multidate','ledger_parse','ledger_view','ledger_edit','ledger_log'])
       await client.query(
         'INSERT INTO dt_roles (role_key, role_name, permissions, is_builtin) VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)',
@@ -208,6 +256,7 @@ export async function ensureSchemaAndTables() {
       'insertgen', 'multidate', 'ledger_parse',
       'ledger_view', 'ledger_edit', 'ledger_delete', 'ledger_restore', 'ledger_log',
       'user_manage', 'role_manage',
+      'announcement_manage',
     ])
     const oldPermMap = {
       'manage': ['manage_view', 'manage_import', 'manage_edit', 'manage_delete', 'manage_restore', 'manage_log'],

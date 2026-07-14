@@ -152,10 +152,17 @@ export function useMapping(
         else { newItems.push(item); added++ }
       }
       setMappingData([...mappingData, ...newItems])
-      persistMapping()
-      message.success(`导入完成，共 ${added} 条`)
+      if (dataMode !== 'local' && !offlineMode) {
+        Api.importItems(newItems).then(res => {
+          message.success(`导入完成，新增 ${res.inserted} 条，跳过 ${res.skipped} 条`)
+          fetchDbMapping()
+        }).catch(() => message.error('导入到数据库失败'))
+      } else {
+        persistMapping()
+        message.success(`导入完成，共 ${added} 条`)
+      }
     } catch (err: any) { message.error('导入失败: ' + err.message) }
-  }, [mappingData, dataMode, offlineMode, dbUrl, persistMapping, message])
+  }, [mappingData, dataMode, offlineMode, dbUrl, persistMapping, fetchDbMapping, message])
 
   const handlePasteChange = useCallback((val: string) => {
     setPasteValue(val)
@@ -187,8 +194,12 @@ export function useMapping(
     const newItem: MappingItem = { original: col.original, chinese: col.translated }
     setMappingData(prev => [...prev, newItem])
     setColumns(prev => prev.map((c, i) => i === colIdx ? { ...c, alternatives: [...c.alternatives, newItem], selectedAlt: c.alternatives.length } : c))
-    persistMapping()
-  }, [columns, canSaveCol, persistMapping])
+    if (dataMode !== 'local' && !offlineMode) {
+      Api.add(newItem).then(() => fetchDbMapping()).catch(() => message.error('保存失败'))
+    } else {
+      persistMapping()
+    }
+  }, [columns, canSaveCol, persistMapping, dataMode, offlineMode, fetchDbMapping, message])
 
   const saveAllNewToMapping = useCallback(() => {
     const newItems: MappingItem[] = []
@@ -200,8 +211,19 @@ export function useMapping(
       }
       return c
     }))
-    if (newItems.length > 0) { setMappingData(prev => [...prev, ...newItems]); persistMapping(); message.success(`保存 ${newItems.length} 条新翻译`) }
-  }, [columns, mappingData, persistMapping, message])
+    if (newItems.length > 0) {
+      setMappingData(prev => [...prev, ...newItems])
+      if (dataMode !== 'local' && !offlineMode) {
+        Api.importItems(newItems).then(res => {
+          message.success(`保存完成，新增 ${res.inserted} 条，跳过 ${res.skipped} 条`)
+          fetchDbMapping()
+        }).catch(() => message.error('保存失败'))
+      } else {
+        persistMapping()
+        message.success(`保存 ${newItems.length} 条新翻译`)
+      }
+    }
+  }, [columns, mappingData, persistMapping, dataMode, offlineMode, fetchDbMapping, message])
 
   const handleCopyTranslation = useCallback(() => {
     // 只要翻译结果行，Tab 分隔（对应原字段顺序）

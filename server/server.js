@@ -14,6 +14,7 @@ import translationsRoutes from './routes/translations.js'
 import extractionRoutes from './routes/extraction.js'
 import ledgerRoutes from './routes/ledger.js'
 import tokensRoutes, { apiTokenMiddleware } from './routes/tokens.js'
+import announcementsRoutes from './routes/announcements.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -52,6 +53,7 @@ app.use('/api/translations', translationsRoutes)
 app.use('/api/extraction', extractionRoutes)
 app.use('/api/ledger', ledgerRoutes)
 app.use('/api/auth/tokens', tokensRoutes)
+app.use('/api/announcements', announcementsRoutes)
 
 // ============ 零散路由（不值得单独文件）============
 
@@ -88,6 +90,7 @@ app.get('/api/permissions', async (_req, res) => {
     { key: 'system-group', label: '系统管理', children: [
       { key: 'user_manage', label: '用户管理' },
       { key: 'role_manage', label: '角色管理' },
+      { key: 'announcement_manage', label: '公告管理' },
     ]},
   ])
 })

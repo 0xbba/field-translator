@@ -112,3 +112,15 @@ export interface ApiToken {
   expired?: boolean
   createDate: string
 }
+
+// ============ 公告 ============
+export interface Announcement {
+  id: number
+  content: string
+  isActive?: boolean
+  expiresAt?: string | null
+  isVisible?: boolean
+  userName?: string
+  createDate?: string
+  lastModified?: string
+}

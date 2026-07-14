@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons'
 import type { AuthUser } from '../../Login'
 import type { TabItem } from '../../types'
+import AnnouncementBanner from './AnnouncementBanner'
 
 export interface MenuItemDef {
   key: string
@@ -66,7 +67,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
         display: 'flex', alignItems: 'center', gap: 12,
         padding: '0 1rem', height: 48, lineHeight: '48px',
         background: '#fff', borderBottom: '1px solid #f0f0f0',
-        whiteSpace: 'nowrap', overflow: 'hidden',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <div style={{
@@ -96,7 +96,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           </Popover>
         </div>
 
-        <div style={{ flex: 1 }} />
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+          <AnnouncementBanner />
+        </div>
 
         {/* 用户头像 + 下拉菜单 */}
         {!offlineMode && currentUser && (

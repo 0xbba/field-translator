@@ -1,5 +1,6 @@
+import { useMemo } from 'react'
 import {
-  Card, Typography, Input, Button, Tag, Tooltip, Select, Table, Modal, Popconfirm, Upload as AntUpload
+  Card, Typography, Input, Button, Tag, Tooltip, Select, Table, Modal, Popconfirm, Upload as AntUpload, Popover
 } from 'antd'
 import { InboxOutlined, DownloadOutlined, TableOutlined, CloseOutlined, DeleteOutlined, SnippetsOutlined, CopyOutlined, CheckOutlined, PlusOutlined, PlusCircleOutlined } from '@ant-design/icons'
 import type { UseMappingReturn } from '../../hooks/useMapping'
@@ -29,8 +30,16 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
     draggerCustomRequest,
   } = mappingHook
 
+  // 重复字段的行索引集合（用于行高亮）
+  const duplicateIdxSet = useMemo(() => {
+    const s = new Set<number>()
+    duplicateTranslations.forEach(d => d.indices.forEach(i => s.add(i)))
+    return s
+  }, [duplicateTranslations])
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <style>{`.row-duplicate td { background: #fff1f0 !important; }`}</style>
       {/* 步骤1 */}
       <Card>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
@@ -40,24 +49,13 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
           上传文件或粘贴首行字段名，自动翻译
         </p>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-          <Input.TextArea
-            value={pasteValue}
-            onChange={e => handlePasteChange(e.target.value)}
-            placeholder={"粘贴首行字段名（支持 Tab/逗号/换行分隔），如: id\tname\tage\tcreate_time"}
-            autoSize={{ minRows: 4, maxRows: 10 }}
-            style={{ fontFamily: 'monospace', flex: 1 }}
-          />
-          <AntUpload
-            accept=".xlsx,.xls,.csv"
-            showUploadList={false}
-            customRequest={draggerCustomRequest}
-          >
-            <Button icon={<InboxOutlined />} style={{ height: 'auto', minHeight: 32, whiteSpace: 'normal', lineHeight: 1.4, padding: '4px 8px', fontSize: '0.75rem' }}>
-              上传文件
-            </Button>
-          </AntUpload>
-        </div>
+        <Input.TextArea
+          value={pasteValue}
+          onChange={e => handlePasteChange(e.target.value)}
+          placeholder={"粘贴首行字段名（支持 Tab/逗号/换行分隔），如: id\tname\tage\tcreate_time"}
+          autoSize={{ minRows: 4, maxRows: 10 }}
+          style={{ fontFamily: 'monospace' }}
+        />
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
           {columns.length > 0 && (
@@ -92,6 +90,13 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
             </>
           )}
           <Button type="default" size="small" onClick={() => { setPasteValue(''); setColumns([]); setTargetFileName(''); setOriginalDataRows([]) }} icon={<CloseOutlined style={{ fontSize: 14 }} />}>清空</Button>
+          <AntUpload
+            accept=".xlsx,.xls,.csv"
+            showUploadList={false}
+            customRequest={draggerCustomRequest}
+          >
+            <Button size="small" icon={<InboxOutlined />}>上传文件</Button>
+          </AntUpload>
           {pasteValue.trim() && <Tag color="processing">{parsePastedHeaders(pasteValue).length} 个字段</Tag>}
           {targetFileName && !pasteValue.trim() && (
             <>
@@ -116,9 +121,23 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
             {multiMatchColumns.length > 0 && <Tag color="blue">{multiMatchColumns.length} 个有多选对照</Tag>}
             {unmatchedColumns.length > 0 && <Tag color="warning">{unmatchedColumns.length} 个无匹配</Tag>}
             {duplicateTranslations.length > 0 && (
-              <Tooltip title={duplicateTranslations.map(d => `${d.chinese}: ${d.indices.map(i => columns[i]?.original).join(', ')}`).join('；')}>
+              <Popover
+                content={
+                  <div style={{ maxHeight: 240, overflowY: 'auto', minWidth: 200 }}>
+                    {duplicateTranslations.map((d, gi) => (
+                      <div key={gi} style={{ marginBottom: gi < duplicateTranslations.length - 1 ? 8 : 0 }}>
+                        <div style={{ fontWeight: 600, color: '#ff4d4f', fontSize: '0.8rem' }}>{d.chinese}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#666', paddingLeft: 8 }}>
+                          {d.indices.map(i => columns[i]?.original).filter(Boolean).join('、')}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                }
+                title=""
+              >
                 <Tag color="error">{duplicateTranslations.length} 组翻译重复（共 {duplicateTranslations.reduce((s, d) => s + d.indices.length, 0)} 个字段）</Tag>
-              </Tooltip>
+              </Popover>
             )}
             {mappingData.length > 0 && matchedColumns.length === 0 && unmatchedColumns.length === columns.length && columns.length > 0 && (
               <Typography.Text type="warning" style={{ fontSize: '0.85rem' }}>无有效匹配结果，请检查字段名或添加对照记录</Typography.Text>
@@ -141,6 +160,7 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
             rowKey={(_, index) => String(index ?? 0)}
             pagination={false}
             scroll={{ x: 700 }}
+            rowClassName={(_, idx) => duplicateIdxSet.has(idx ?? -1) ? 'row-duplicate' : ''}
             columns={[
               {
                 title: '#',
@@ -155,17 +175,14 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
                 width: 120,
                 align: 'center',
                 render: (_, col, idx) => {
-                  const isDuplicate = duplicateTranslations.some(d => d.indices.includes(idx))
+                  const isDuplicate = duplicateIdxSet.has(idx)
                   const hasMultiAlts = col.alternatives.length > 1
                   const isMatched = col.alternatives.length > 0
-                  return (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                      {hasMultiAlts && <Tag color="processing">{col.alternatives.length} 个对照</Tag>}
-                      {!hasMultiAlts && isMatched && <Tag color="success">已匹配</Tag>}
-                      {!isMatched && mappingData.length > 0 && <Tag color="warning">无匹配</Tag>}
-                      {isDuplicate && <Tag color="error">翻译重复</Tag>}
-                    </div>
-                  )
+                  if (hasMultiAlts) return <Tag color="processing">{col.alternatives.length} 个对照</Tag>
+                  if (isDuplicate && isMatched) return <Tag color="error">已匹配</Tag>
+                  if (isMatched) return <Tag color="success">已匹配</Tag>
+                  if (mappingData.length > 0) return <Tag color="warning">无匹配</Tag>
+                  return null
                 },
               },
               {
@@ -182,7 +199,7 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
                 render: (_, col, idx) => {
                   const canSave = canSaveCol(idx)
                   const hasMultiAlts = col.alternatives.length > 1
-                  return (
+                    return (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                       <Input
                         size="small" value={col.translated}

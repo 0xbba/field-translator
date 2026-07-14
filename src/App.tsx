@@ -7,6 +7,7 @@ import {
   UserOutlined, TeamOutlined, HddOutlined,
   DatabaseOutlined, SettingOutlined,
   TableOutlined, FormOutlined,
+  NotificationOutlined,
 } from '@ant-design/icons'
 import { AppContext } from './contexts/AppContext'
 import { useAuth } from './hooks/useAuth'
@@ -30,6 +31,7 @@ import LedgerParsePage from './components/pages/LedgerParsePage'
 import LedgerManagePage from './components/pages/LedgerManagePage'
 import UsersPage from './components/pages/UsersPage'
 import RolesPage from './components/pages/RolesPage'
+import AnnouncementsPage from './components/pages/AnnouncementsPage'
 
 // 布局组件
 import AppLayout from './components/layout/AppLayout'
@@ -106,6 +108,7 @@ function AppContent() {
     ledgerManage: 'ledger_view',
     users: 'user_manage',
     roles: 'role_manage',
+    announcements: 'announcement_manage',
   }
 
   // ============ 已删除记录状态（翻译管理） ============
@@ -178,9 +181,12 @@ function AppContent() {
       { key: 'ledgerParse', label: '解析录入', icon: <FormOutlined /> },
       ...(hasLedgerManagePerm ? [{ key: 'ledgerManage', label: '管理台账', icon: <HddOutlined /> }] : []),
     ]},
-    ...(isAdmin() ? [{ key: 'system-group', label: '系统管理', icon: <SettingOutlined />, children: [
-      { key: 'users', label: '用户管理', icon: <UserOutlined /> },
-      { key: 'roles', label: '角色管理', icon: <TeamOutlined /> },
+    ...((isAdmin() || hasPerm('announcement_manage')) ? [{ key: 'system-group', label: '系统管理', icon: <SettingOutlined />, children: [
+      ...(isAdmin() ? [
+        { key: 'users', label: '用户管理', icon: <UserOutlined /> },
+        { key: 'roles', label: '角色管理', icon: <TeamOutlined /> },
+      ] : []),
+      ...(hasPerm('announcement_manage') ? [{ key: 'announcements', label: '公告管理', icon: <NotificationOutlined /> }] : []),
     ]}] : []),
   ], [hasPerm, isAdmin, hasManagePerm, hasLedgerManagePerm])
 
@@ -193,6 +199,7 @@ function AppContent() {
     ledgerManage: <PageErrorBoundary name="LedgerManagePage"><LedgerManagePage ledgerHook={ledgerHook} /></PageErrorBoundary>,
     users: <PageErrorBoundary name="UsersPage"><UsersPage usersData={usersData} rolesData={rolesData} fetchUsers={fetchUsers} message={message} currentUser={currentUser} /></PageErrorBoundary>,
     roles: <PageErrorBoundary name="RolesPage"><RolesPage rolesData={rolesData} allPerms={allPerms} fetchRoles={fetchRoles} message={message} /></PageErrorBoundary>,
+    announcements: <PageErrorBoundary name="AnnouncementsPage"><AnnouncementsPage /></PageErrorBoundary>,
   }), [mappingHook, manageHook, insertHook, multidateHook, ledgerHook, usersData, rolesData, fetchUsers, fetchRoles, showDeleted, message, currentUser])
 
   // 标签页交互

@@ -13,6 +13,7 @@ export function parseLedgerText(text: string): Omit<LedgerRecord, '_dbId' | '_de
   const standaloneLabels = new Set([
     '标题', '需求分类', '需求类型', '清单条数', '清单交付方式',
     '申请事由', '数据内容', '备注', '说明', '附件',
+    '分管申请部门的公司领导', '省公司分管申请部门领导',
   ])
 
   // 已知标签（用于判断续接终止）
@@ -21,6 +22,7 @@ export function parseLedgerText(text: string): Omit<LedgerRecord, '_dbId' | '_de
     '标题', '需求分类', '需求类型', '清单条数', '清单交付方式',
     '申请事由', '数据内容', '备注', '附件',
     '基本信息', '附件信息', '审核过程',
+    '分管申请部门的公司领导', '省公司分管申请部门领导',
   ])
 
   // 判断是否是"停止续接"的行（正在续接值内容时使用）
@@ -251,7 +253,7 @@ export function parseLedgerText(text: string): Omit<LedgerRecord, '_dbId' | '_de
 
   // 先找"数据需求承接人"环节
   const acceptorStage = approvalStages.find(s =>
-    s.name.includes('数据需求承接') || s.name.includes('数据承接')
+    s.name.includes('数据需求承接') || s.name.includes('数据承接') || s.name.includes('数据统计人员')
   )
 
   if (acceptorStage && acceptorStage.completedAt) {
