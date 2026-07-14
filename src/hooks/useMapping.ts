@@ -247,11 +247,11 @@ export function useMapping(
     setCopiedComment(true); setTimeout(() => setCopiedComment(false), 1500)
   }, [columns, pasteValue, targetFileName])
 
-  // 计算属性
-  const matchedColumns = useMemo(() => columns.filter(c => displayTranslation(c) !== c.original), [columns])
+  // 计算属性：基于是否有对照记录判断匹配状态，而非翻译值是否和原字段不同
+  const matchedColumns = useMemo(() => columns.filter(c => c.alternatives.length === 1), [columns])
   const multiMatchColumns = useMemo(() => columns.filter(c => c.alternatives.length > 1), [columns])
-  const unmatchedColumns = useMemo(() => columns.filter(c => displayTranslation(c) === c.original && c.original !== ''), [columns])
-  const translatedCount = matchedColumns.length
+  const unmatchedColumns = useMemo(() => columns.filter(c => c.alternatives.length === 0 && c.original !== ''), [columns])
+  const translatedCount = useMemo(() => columns.filter(c => displayTranslation(c) !== c.original).length, [columns])
   const newMappingCount = columns.filter((_, idx) => canSaveCol(idx)).length
 
   // 批量翻译
