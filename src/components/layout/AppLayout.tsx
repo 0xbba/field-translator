@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons'
 import type { AuthUser } from '../../Login'
 import type { TabItem } from '../../types'
+import { COLORS } from '../../constants'
 import AnnouncementBanner from './AnnouncementBanner'
 
 export interface MenuItemDef {
@@ -72,11 +73,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             width: 28, height: 28, borderRadius: 6,
-            background: '#1677ff', color: '#fff',
+            background: COLORS.primary, color: '#fff',
           }}>
             <GlobalOutlined style={{ fontSize: 16 }} />
           </div>
-          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'rgba(0,0,0,0.88)' }}>数据组常用工具</span>
+          <span style={{ fontSize: '0.95rem', fontWeight: 800, color: COLORS.textPrimary }}>数据组常用工具</span>
           <Popover
             content={offlineMode ? '单机版，数据使用 localStorage 存储，清除浏览器数据后会被清除，请及时备份' : '点击下载单机文件'}
             trigger="hover"
@@ -118,7 +119,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
             <Avatar
               size="small"
               icon={<UserOutlined />}
-              style={{ cursor: 'pointer', flexShrink: 0, backgroundColor: isAdmin ? '#1677ff' : '#87a3c3' }}
+              style={{ cursor: 'pointer', flexShrink: 0, backgroundColor: isAdmin ? COLORS.primary : '#87a3c3' }}
             />
           </Dropdown>
         )}

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import type { UseLedgerReturn } from '../../hooks/useLedger'
 import { formatLedgerCopyText } from '../../utils/ledger'
 import { useAppContext } from '../../contexts/AppContext'
+import { COLORS } from '../../constants'
 import { Api } from '../../api'
 
 interface LedgerParsePageProps {
@@ -70,8 +71,15 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
   }
 
   const handleWrite = async () => {
-    await addLedgerRecord()
+    setWriting(true)
+    try {
+      await addLedgerRecord()
+    } finally {
+      setWriting(false)
+    }
   }
+
+  const [writing, setWriting] = useState(false)
 
   const handleClear = () => {
     setLedgerPasteText('')
@@ -88,7 +96,7 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <Typography.Text strong style={{ fontSize: '0.95rem' }}>解析数据需求</Typography.Text>
         </div>
-        <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12 }}>
+        <p style={{ fontSize: '0.75rem', color: COLORS.textTertiary, marginBottom: 12 }}>
           复制数据需求流程网页内容，粘贴到下方自动解析
         </p>
         <Input.TextArea
@@ -102,10 +110,10 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
           {ledgerParsed && (
             <>
               <Button type="default" size="small" onClick={handleCopy} icon={<CopyOutlined style={{ fontSize: 14 }} />}>复制登记文本</Button>
-              <Button type="primary" size="small" onClick={handleWrite} icon={<PlusCircleOutlined style={{ fontSize: 14 }} />}>写入台账</Button>
+              <Button type="primary" size="small" onClick={handleWrite} loading={writing} icon={<PlusCircleOutlined style={{ fontSize: 14 }} />}>写入台账</Button>
             </>
           )}
-          <Button type="default" size="small" onClick={handleClear} icon={<CloseOutlined style={{ fontSize: 14 }} />}>清空</Button>
+          <Button type="default" size="small" onClick={handleClear} disabled={writing} icon={<CloseOutlined style={{ fontSize: 14 }} />}>清空</Button>
         </div>
       </Card>
 
@@ -133,27 +141,27 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
 
           <Divider style={{ margin: '12px 0' }} />
           <Typography.Text strong style={{ fontSize: '0.9rem' }}>提取记录</Typography.Text>
-          <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 8, marginTop: 2 }}>
+          <p style={{ fontSize: '0.75rem', color: COLORS.textTertiary, marginBottom: 8, marginTop: 2 }}>
             填写数据条数后，写入台账时将同时登记提取记录
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 180 }}>
-              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0, width: 56 }}>数据条数</span>
+              <span style={{ fontSize: '0.85rem', color: COLORS.textSecondary, flexShrink: 0, width: 56 }}>数据条数</span>
               <Input size="small" value={extractionRecordCount} onChange={e => setExtractionRecordCount(e.target.value.replace(/[^\d]/g, ''))} placeholder="选填" style={{ flex: 1 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 180 }}>
-              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0, width: 56 }}>取数人</span>
+              <span style={{ fontSize: '0.85rem', color: COLORS.textSecondary, flexShrink: 0, width: 56 }}>取数人</span>
               <Input size="small" value={extractionExtractor} onChange={e => setExtractionExtractor(e.target.value)} placeholder="默认当前用户" style={{ flex: 1 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 180 }}>
-              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0, width: 56 }}>监督人</span>
+              <span style={{ fontSize: '0.85rem', color: COLORS.textSecondary, flexShrink: 0, width: 56 }}>监督人</span>
               <AutoComplete size="small" value={extractionSupervisor} onChange={v => setExtractionSupervisor(v)} options={supervisorOptions} placeholder="选填" style={{ flex: 1 }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: '1 1 180px', minWidth: 180 }}>
-              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)', flexShrink: 0, width: 56 }}>备注</span>
+              <span style={{ fontSize: '0.85rem', color: COLORS.textSecondary, flexShrink: 0, width: 56 }}>备注</span>
               <Input size="small" value={extractionRemark} onChange={e => setExtractionRemark(e.target.value)} placeholder="选填" style={{ flex: 1 }} />
             </div>
-            <Button type="primary" size="small" onClick={handleWrite} icon={<PlusCircleOutlined style={{ fontSize: 14 }} />}>写入台账</Button>
+            <Button type="primary" size="small" onClick={handleWrite} loading={writing} icon={<PlusCircleOutlined style={{ fontSize: 14 }} />}>写入台账</Button>
           </div>
         </Card>
       )}

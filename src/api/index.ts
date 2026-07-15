@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { authHeaders, jsonHeaders } from '../utils/auth'
-import type { MappingItem, LedgerRecord, LogEntry, RoleForm, UserForm, ExtractionRecord, ApiToken, Announcement } from '../types'
+import type { MappingItem, LedgerRecord, LogEntry, RoleForm, UserForm, ExtractionRecord, ApiToken, Announcement, AuthUser, UserItem, RoleItem, PermissionNode } from '../types'
 
 const BASE = ''
 
@@ -67,9 +67,9 @@ export const Api = {
   // ============ 认证 ============
   async test() { return request<{ status: string }>('/api/health') },
   async login(username: string, password: string) {
-    return request<{ token: string; user: any }>('/api/auth/login', { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ username, password }) })
+    return request<{ token: string; user: AuthUser }>('/api/auth/login', { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ username, password }) })
   },
-  async me() { return request<any>('/api/auth/me') },
+  async me() { return request<AuthUser>('/api/auth/me') },
   async changePassword(oldPwd: string, newPwd: string) {
     return request('/api/auth/password', { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd }) })
   },
@@ -186,17 +186,17 @@ export const Api = {
   async userDisplayNames(): Promise<string[]> { return request('/api/users/display-names') },
 
   // ============ 用户管理 ============
-  async usersList() { return request<any[]>('/api/users') },
+  async usersList() { return request<UserItem[]>('/api/users') },
   async userAdd(form: UserForm) { return request('/api/users', { method: 'POST', headers: jsonHeaders(), body: JSON.stringify(form) }) },
   async userUpdate(id: number, form: Partial<UserForm>) { return request(`/api/users/${id}`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify(form) }) },
   async userDelete(id: number) { return request(`/api/users/${id}`, { method: 'DELETE' }) },
 
   // ============ 角色管理 ============
-  async rolesList() { return request<any[]>('/api/roles') },
+  async rolesList() { return request<RoleItem[]>('/api/roles') },
   async roleAdd(roleKey: string, roleName: string, permissions: string[]) { return request('/api/roles', { method: 'POST', headers: jsonHeaders(), body: JSON.stringify({ roleKey, roleName, permissions }) }) },
   async roleUpdate(id: number, data: Partial<RoleForm>) { return request(`/api/roles/${id}`, { method: 'PUT', headers: jsonHeaders(), body: JSON.stringify(data) }) },
   async roleDelete(id: number) { return request(`/api/roles/${id}`, { method: 'DELETE' }) },
-  async permissionsList() { return request<any[]>('/api/permissions') },
+  async permissionsList() { return request<PermissionNode[]>('/api/permissions') },
 
   // ============ API Token ============
   async tokenGenerate(name: string, expiresIn: string = 'never') {

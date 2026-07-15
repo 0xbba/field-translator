@@ -8,6 +8,11 @@ export function getUserInfo(req) {
   return { userId: req.user.id, userName: req.user.displayName || req.user.username }
 }
 
+// 500 错误脱敏：不把 err.message（可能含 SQL 语句等内部信息）返回给客户端
+export function safeError(_err) {
+  return '服务器内部错误'
+}
+
 // ============ 认证中间件 ============
 
 export function authMiddleware(req, res, next) {

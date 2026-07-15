@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Card, Typography, Button, Divider, Input, Table, Switch, Tooltip, Popconfirm, Upload as AntUpload, Dropdown, Modal } from 'antd'
 import type { UploadProps } from 'antd'
 import { InboxOutlined, DownloadOutlined, TableOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, EditOutlined, FileTextOutlined, DeleteOutlined, CheckOutlined, CloseOutlined, UndoOutlined, MoreOutlined } from '@ant-design/icons'
@@ -7,7 +7,7 @@ import type { UseManageReturn } from '../../hooks/useManage'
 import type { MappingItem, ImportConflict } from '../../types'
 import { downloadMappingTemplate, parseMappingXLSX } from '../../utils/translation'
 import { useAppContext } from '../../contexts/AppContext'
-import { PAGE_SIZE_OPTIONS } from '../../constants'
+import { PAGE_SIZE_OPTIONS, COLORS } from '../../constants'
 import { useIsSmallScreen } from '../../hooks/useResponsive'
 import { Api } from '../../api'
 
@@ -30,15 +30,22 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
 
   const safePage = Math.min(page, manageHook.totalPages)
 
+  // 用 Map 替代 indexOf，避免 O(n) 重复查找
+  const recordIndexMap = useMemo(() => {
+    const map = new Map<MappingItem, number>()
+    manageHook.filteredData.forEach((r, i) => map.set(r, i))
+    return map
+  }, [manageHook.filteredData])
+
   const draggerCustomRequest: UploadProps['customRequest'] = ({ onSuccess }) => { setTimeout(() => onSuccess?.('ok'), 0) }
 
-  const openFieldLogModal = useCallback((recordId: number, fieldName: string) => {
+  const openFieldLogModal = useCallback((recordId: number) => {
     const h = hookRef.current
     h.setLogRecordId(recordId)
-    h.setLogFieldName(fieldName)
+    h.setLogFieldName('')
     h.setLogModalOpen(true)
     h.setLogPage(1)
-    setTimeout(() => hookRef.current.fetchLogs(recordId, fieldName), 0)
+    setTimeout(() => hookRef.current.fetchLogs(recordId, undefined, 1), 0)
   }, [])
 
   const handleImportFile = useCallback(async (file: File) => {
@@ -86,7 +93,7 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <Typography.Text strong style={{ fontSize: '0.95rem' }}>导入对照表</Typography.Text>
         </div>
-        <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12 }}>
+        <p style={{ fontSize: '0.75rem', color: COLORS.textTertiary, marginBottom: 12 }}>
           上传 Excel 文件批量导入对照记录，有表头时自动忽略首行
         </p>
         <AntUpload.Dragger
@@ -105,8 +112,8 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
       </Card>}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: 'rgba(0,0,0,0.88)' }}>
-          <TableOutlined style={{ fontSize: 16, color: '#1677ff' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: COLORS.textPrimary }}>
+          <TableOutlined style={{ fontSize: 16, color: COLORS.primary }} />
           <span style={{ fontWeight: 700 }}>{showDeleted ? `共 ${manageHook.filteredData.length} 条已删除记录` : `共 ${mappingData.length} 条对照记录`}</span>
         </div>
 
@@ -133,7 +140,7 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
         )}
 
         {(hasPerm('manage_delete') || hasPerm('manage_restore')) && !offlineMode && dataMode === 'database' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem', color: 'rgba(0,0,0,0.65)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem', color: COLORS.textSecondary }}>
             <Switch size="small" checked={showDeleted} onChange={setShowDeleted} />
             <span>已删除</span>
           </div>
@@ -176,7 +183,7 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
             ellipsis: true,
             sorter: (a, b) => (a.original || '').localeCompare(b.original || ''),
             render: (v, record) => {
-              const globalIdx = manageHook.filteredData.indexOf(record)
+              const globalIdx = recordIndexMap.get(record) ?? -1
               if (record._deleted) return <Typography.Text code>{v}</Typography.Text>
               const isEditing = manageHook.editingGlobalIdx === globalIdx
               return isEditing
@@ -191,7 +198,7 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
             ellipsis: true,
             sorter: (a, b) => (a.chinese || '').localeCompare(b.chinese || ''),
             render: (v, record) => {
-              const globalIdx = manageHook.filteredData.indexOf(record)
+              const globalIdx = recordIndexMap.get(record) ?? -1
               if (record._deleted) return v
               const isEditing = manageHook.editingGlobalIdx === globalIdx
               return isEditing
@@ -206,13 +213,13 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
             align: 'center' as const,
             fixed: 'right' as const,
             render: (_, record) => {
-              const globalIdx = manageHook.filteredData.indexOf(record)
+              const globalIdx = recordIndexMap.get(record) ?? -1
 
               // ---- 小屏：收进 Dropdown ----
               if (isSmall) {
                 if (record._deleted) {
                   const items: any[] = []
-                  if (!offlineMode && hasPerm('manage_log')) items.push({ key: 'log', icon: <FileTextOutlined />, label: '变更日志', onClick: () => record._dbId && openFieldLogModal(record._dbId, record.original) })
+                  if (!offlineMode && hasPerm('manage_log')) items.push({ key: 'log', icon: <FileTextOutlined />, label: '变更日志', onClick: () => record._dbId && openFieldLogModal(record._dbId) })
                   if (hasPerm('manage_restore')) items.push({ key: 'restore', icon: <UndoOutlined />, label: '恢复', onClick: () => { Modal.confirm({ title: '确认恢复', content: `确定要恢复字段 ${record.original} 吗？`, okText: '恢复', cancelText: '取消', getContainer: () => document.body, onOk: () => manageHook.restoreItem(record) }) } })
                   return <Dropdown menu={{ items }} trigger={['click']} getPopupContainer={() => document.body}><Button type="text" size="small" icon={<MoreOutlined style={{ fontSize: 16 }} />} /></Dropdown>
                 }
@@ -226,7 +233,7 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
                 const items: any[] = []
                 if (hasPerm('manage_edit')) items.push({ key: 'edit', icon: <EditOutlined />, label: '编辑', onClick: () => manageHook.startEdit(globalIdx) })
                 items.push({ key: 'search', icon: <SearchOutlined />, label: '查看同名字段', onClick: () => { manageHook.setSearchExact(true); manageHook.setManageSearchInput(record.original); setTimeout(() => hookRef.current.applySearch(), 0); setPage(1); message.info(`已搜索「${record.original}」，清空搜索框可恢复全部查看`) } })
-                if (!offlineMode && hasPerm('manage_log')) items.push({ key: 'log', icon: <FileTextOutlined />, label: '变更日志', onClick: () => record._dbId && openFieldLogModal(record._dbId, record.original) })
+                if (!offlineMode && hasPerm('manage_log')) items.push({ key: 'log', icon: <FileTextOutlined />, label: '变更日志', onClick: () => record._dbId && openFieldLogModal(record._dbId) })
                 if (hasPerm('manage_delete')) items.push({ key: 'delete', icon: <DeleteOutlined />, label: '删除', danger: true, onClick: () => { Modal.confirm({ title: '确认删除', content: `确定要删除字段 ${record.original} 吗？`, okText: '删除', okButtonProps: { danger: true }, cancelText: '取消', getContainer: () => document.body, onOk: () => manageHook.deleteItem(record) }) } })
                 return <Dropdown menu={{ items }} trigger={['click']} getPopupContainer={() => document.body}><Button type="text" size="small" icon={<MoreOutlined style={{ fontSize: 16 }} />} /></Dropdown>
               }
@@ -234,7 +241,7 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
               // ---- 大屏：保持原样 ----
               if (record._deleted) {
                 return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                  {!offlineMode && hasPerm('manage_log') && <Tooltip title="变更日志"><Button type="text" size="small" onClick={() => record._dbId && openFieldLogModal(record._dbId, record.original)} icon={<FileTextOutlined style={{ fontSize: 16 }} />} /></Tooltip>}
+                  {!offlineMode && hasPerm('manage_log') && <Tooltip title="变更日志"><Button type="text" size="small" onClick={() => record._dbId && openFieldLogModal(record._dbId)} icon={<FileTextOutlined style={{ fontSize: 16 }} />} /></Tooltip>}
                   {hasPerm('manage_restore') && <Popconfirm
                     title="确认恢复"
                     description={<span>确定要恢复字段 <strong>{record.original}</strong> 吗？</span>}
@@ -255,7 +262,7 @@ export default function ManagePage({ manageHook, showDeleted, setShowDeleted }: 
                 : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
                     {hasPerm('manage_edit') && <Tooltip title="编辑"><Button type="text" size="small" onClick={() => manageHook.startEdit(globalIdx)} icon={<EditOutlined style={{ fontSize: 16 }} />} /></Tooltip>}
                     <Tooltip title="查看同名字段"><Button type="text" size="small" onClick={() => { manageHook.setSearchExact(true); manageHook.setManageSearchInput(record.original); setTimeout(() => hookRef.current.applySearch(), 0); setPage(1); message.info(`已搜索「${record.original}」，清空搜索框可恢复全部查看`) }} icon={<SearchOutlined style={{ fontSize: 16 }} />} /></Tooltip>
-                    {!offlineMode && hasPerm('manage_log') && <Tooltip title="变更日志"><Button type="text" size="small" onClick={() => record._dbId && openFieldLogModal(record._dbId, record.original)} icon={<FileTextOutlined style={{ fontSize: 16 }} />} /></Tooltip>}
+                    {!offlineMode && hasPerm('manage_log') && <Tooltip title="变更日志"><Button type="text" size="small" onClick={() => record._dbId && openFieldLogModal(record._dbId)} icon={<FileTextOutlined style={{ fontSize: 16 }} />} /></Tooltip>}
                     {hasPerm('manage_delete') && <Popconfirm
                       title="确认删除"
                       description={<span>确定要删除字段 <strong>{record.original}</strong> 吗？</span>}

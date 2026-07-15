@@ -3,7 +3,7 @@ import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { pool, pgSchema, pgHost, pgPort, pgDatabase } from './db.js'
-import { authMiddleware, requirePerm, getUserInfo } from './middleware.js'
+import { authMiddleware, requirePerm, getUserInfo, safeError } from './middleware.js'
 import { ensureSchemaAndTables } from './init.js'
 
 // 路由模块
@@ -19,7 +19,7 @@ import announcementsRoutes from './routes/announcements.js'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const app = express()
-app.use(cors())
+app.use(cors({ origin: process.env.CORS_ORIGIN || false, credentials: true }))
 app.use(express.json({ limit: '10mb' }))
 
 // 缓存控制：index.html 和 JS/CSS 资源不缓存，避免版本更新后浏览器使用旧缓存
@@ -101,7 +101,7 @@ app.get('/api/health', async (_req, res) => {
     const result = await pool.query('SELECT COUNT(*) as cnt FROM dt_field_translation WHERE is_visible = true')
     res.json({ ok: true, count: Number(result.rows[0].cnt) })
   } catch (err) {
-    res.json({ ok: false, error: err.message })
+    res.json({ ok: false, error: safeError(err) })
   }
 })
 
@@ -141,7 +141,7 @@ app.get('/api/logs', requirePerm('manage_log'), async (req, res) => {
     })
   } catch (err) {
     console.error('[GET /api/logs]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 

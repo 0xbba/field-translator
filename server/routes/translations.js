@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { pool } from '../db.js'
-import { requirePerm, getUserInfo } from '../middleware.js'
+import { requirePerm, getUserInfo, safeError } from '../middleware.js'
 import { writeLog } from '../utils/log.js'
 
 const router = Router()
@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
     })))
   } catch (err) {
     console.error('[GET /api/translations]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -45,7 +45,7 @@ router.get('/deleted', requirePerm('manage_view'), async (req, res) => {
     })))
   } catch (err) {
     console.error('[GET /api/translations/deleted]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -63,7 +63,7 @@ router.put('/:id/restore', requirePerm('manage_restore'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/translations/:id/restore]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -88,7 +88,7 @@ router.post('/', async (req, res) => {
     res.json({ id, original, chinese })
   } catch (err) {
     console.error('[POST /api/translations]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -118,7 +118,7 @@ router.put('/:id', requirePerm('manage_edit'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/translations/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -138,7 +138,7 @@ router.delete('/:id', requirePerm('manage_delete'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[DELETE /api/translations/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -159,7 +159,7 @@ router.post('/lookup', async (req, res) => {
     })))
   } catch (err) {
     console.error('[POST /api/translations/lookup]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -186,10 +186,7 @@ router.post('/import', requirePerm('manage_import'), async (req, res) => {
           'INSERT INTO dt_field_translation (field_name, field_translation, is_visible, user_id, user_name, create_date, last_modified) VALUES ($1, $2, true, $3, $4, NOW(), NOW()) RETURNING id',
           [item.original, item.chinese, _uid || null, _uname || null]
         )
-        await client.query(
-          'INSERT INTO dt_field_translation_log (operation, record_id, field_name, old_value, new_value, user_id, user_name, operation_date) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())',
-          ['INSERT', insResult.rows[0].id, item.original, null, item.chinese, _uid || null, _uname || null]
-        )
+        await writeLog(LOG_TABLE, { operation: 'INSERT', recordId: insResult.rows[0].id, fieldName: item.original, newValue: item.chinese, userId: _uid || null, userName: _uname || null }, client)
         inserted++
       }
     }
@@ -198,7 +195,7 @@ router.post('/import', requirePerm('manage_import'), async (req, res) => {
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('[POST /api/translations/import]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   } finally {
     client.release()
   }

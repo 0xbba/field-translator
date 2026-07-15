@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Marquee from 'react-fast-marquee'
 import {Api } from '../../api'
+import { COLORS } from '../../constants'
 import type { Announcement } from '../../types'
 
 const AnnouncementBanner: React.FC = () => {
@@ -24,7 +25,7 @@ const AnnouncementBanner: React.FC = () => {
         lineHeight: '28px',
         overflow: 'hidden',
         fontSize: '0.8rem',
-        color: '#1677ff',
+        color: COLORS.primary,
       }}>
         <Marquee pauseOnHover gradient={false} speed={40}>
           {text}

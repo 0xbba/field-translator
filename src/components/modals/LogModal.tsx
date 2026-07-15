@@ -1,6 +1,7 @@
 import { Modal, Button, Table, Tag, Tooltip, Typography } from 'antd'
 import type { LogEntry } from '../../types'
 import { formatLogValue } from '../../utils/format'
+import { COLORS } from '../../constants'
 import dayjs from 'dayjs'
 
 interface LogModalProps {
@@ -26,12 +27,12 @@ export default function LogModal({ open, data, total, page, totalPages, onPageCh
       footer={
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
           <Button type="default" size="small" onClick={() => onPageChange(Math.max(1, page - 1))} disabled={page <= 1}>上一页</Button>
-          <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.45)' }}>{page} / {totalPages}</span>
+          <span style={{ fontSize: '0.85rem', color: COLORS.textTertiary }}>{page} / {totalPages}</span>
           <Button type="default" size="small" onClick={() => onPageChange(Math.min(totalPages, page + 1))} disabled={page >= totalPages}>下一页</Button>
         </div>
       }
     >
-      <p style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12, textAlign: 'center' }}>
+      <p style={{ fontSize: '0.85rem', color: COLORS.textTertiary, marginBottom: 12, textAlign: 'center' }}>
         共 <Typography.Text strong>{total}</Typography.Text> 条变更日志
       </p>
       {data.length === 0 ? (

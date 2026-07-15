@@ -119,7 +119,7 @@ export default function AnnouncementsPage() {
           {
             title: '内容', dataIndex: 'content', key: 'content', ellipsis: true,
             render: (v: string, record: Announcement) => (
-              <span style={record.isVisible === false ? { textDecoration: 'line-through', color: '#999' } : {}}>
+              <span style={record.isVisible === false ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.25)' } : {}}>
                 {v}
               </span>
             ),

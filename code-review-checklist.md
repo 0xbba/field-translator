@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'c7b5ab92-9f32-4599-9556-42c6998b6cab'
-  PropagateID: 'c7b5ab92-9f32-4599-9556-42c6998b6cab'
-  ReservedCode1: 'ce2d542e-0695-4dc9-9aea-8675abaf59be'
-  ReservedCode2: 'ce2d542e-0695-4dc9-9aea-8675abaf59be'
+  ProduceID: '0b65dc4c-7ef7-4182-90dc-39d3ef8aae67'
+  PropagateID: '0b65dc4c-7ef7-4182-90dc-39d3ef8aae67'
+  ReservedCode1: 'af42b3ca-02e1-4bd6-809c-2b11be4e08c0'
+  ReservedCode2: 'af42b3ca-02e1-4bd6-809c-2b11be4e08c0'
 ---
 
 # data-team-tools 代码审查清单
@@ -15,45 +15,45 @@ AIGC:
 
 ## P0 - 必须立即修复
 
-- [ ] 1. **[安全/XSS]** `sidebar.js:747` 监督人列表 `names.map(n => '<option value="${n}">')` 未转义，API返回恶意用户名可执行任意脚本
-- [ ] 2. **[安全/XSS]** `sidebar.js:8,686` settings消息区域和连接状态用 `innerHTML` 拼接 userInfo 未转义
-- [ ] 3. **[Bug]** `useLedger.tsx:284,365` `Api.extractionAdd` 两处调用缺少 `extractionRemark` 参数，备注被静默丢弃
-- [ ] 4. **[Bug]** `useLedger.tsx:384,402` 直接变异 React 状态 `record._deleted = true/false`，违反不可变原则，可能跳过重渲染
-- [ ] 5. **[Bug]** `useMapping.tsx:151` 直接变异 React 状态 `mappingData[existing].chinese = item.chinese`
-- [ ] 6. **[Bug]** `LedgerManagePage.tsx:405` `recordCount || ''` 在值为0时显示空白，应改为 `?? ''`
-- [ ] 7. **[Bug]** `sidebar.js` 缺少已删除记录恢复功能，写入时若单号在已删除记录中存在，会违反"每单号唯一可见记录"约束
-- [ ] 8. **[性能/安全]** `routes/tokens.js:96` `apiTokenMiddleware` 全表遍历 + 同步 `bcrypt.compareSync`，Token增长后事件循环阻塞导致服务不可用
+- [x] 1. **[安全/XSS]** `sidebar.js:747` 监督人列表 `names.map(n => '<option value="${n}">')` 未转义，API返回恶意用户名可执行任意脚本
+- [x] 2. **[安全/XSS]** `sidebar.js:8,686` settings消息区域和连接状态用 `innerHTML` 拼接 userInfo 未转义
+- [x] 3. **[Bug]** `useLedger.tsx:284,365` `Api.extractionAdd` 两处调用缺少 `extractionRemark` 参数，备注被静默丢弃
+- [x] 4. **[Bug]** `useLedger.tsx:384,402` 直接变异 React 状态 `record._deleted = true/false`，违反不可变原则，可能跳过重渲染
+- [x] 5. **[Bug]** `useMapping.tsx:151` 直接变异 React 状态 `mappingData[existing].chinese = item.chinese`
+- [x] 6. **[Bug]** `LedgerManagePage.tsx:405` `recordCount || ''` 在值为0时显示空白，应改为 `?? ''`
+- [x] 7. **[Bug]** `sidebar.js` 缺少已删除记录恢复功能，写入时若单号在已删除记录中存在，会违反"每单号唯一可见记录"约束
+- [x] 8. **[性能/安全]** `routes/tokens.js:96` `apiTokenMiddleware` 全表遍历 + 同步 `bcrypt.compareSync`，Token增长后事件循环阻塞导致服务不可用
 
 ## P1 - 近期应修复
 
-- [ ] 9. **[Bug]** `useLedger.tsx:377` `addLedgerRecord` 依赖数组缺少 `extractionRemark` 和 `showDeletedLedger`，闭包捕获过时值
-- [ ] 10. **[Bug]** `LedgerManagePage.tsx:186` `Math.random()` 作为 rowKey 兜底，每次渲染行身份变化，触发整表重渲染
-- [ ] 11. **[Bug]** `LedgerParsePage.tsx:120` finishTime 空字符串是 falsy，用户清空完成时间后输入框变禁用态不可重输
-- [ ] 12. **[Bug]** `LedgerParsePage.tsx:36` useEffect 依赖数组仅 `[ledgerParsed]`，闭包中 `extractionExtractor`/`currentUser` 可能过时
-- [ ] 13. **[安全]** `middleware.js:28` `requirePerm` 未校验 `is_active`，禁用用户的 JWT 在有效期内仍可访问
-- [ ] 14. **[Bug]** `routes/users.js:80` 用户硬删除与 `dt_api_tokens` 外键冲突（无 ON DELETE CASCADE），删有Token的用户报500
-- [ ] 15. **[Bug]** `routes/tokens.js:25` `expires_at` 存入时间用了 `toISOString()`（UTC），过期判断比预期早8小时
-- [ ] 16. **[同步]** `sidebar.js` vs `content.js` DOM提取与文本解析的处理人逻辑完全不同：DOM有 `isCoordinator` 分支，文本解析没有
-- [ ] 17. **[同步]** `parser.js` vs `ledger.ts` 整个 parser.js 是 ledger.ts 的手动移植拷贝，无自动化同步机制，极易遗漏
-- [ ] 18. **[Bug]** `utils/log.js:11` `oldValue || null` 和 `newValue || null` 在值为0或空字符串时误转为null，应用 `?? null`
-- [ ] 19. **[Bug]** `routes/extraction.js:53` UPDATE 未校验 `is_visible`，可修改已软删除的提取记录
+- [x] 9. **[Bug]** `useLedger.tsx:377` `addLedgerRecord` 依赖数组缺少 `extractionRemark` 和 `showDeletedLedger`，闭包捕获过时值
+- [x] 10. **[Bug]** `LedgerManagePage.tsx:186` `Math.random()` 作为 rowKey 兜底，每次渲染行身份变化，触发整表重渲染
+- [x] 11. **[Bug]** `LedgerParsePage.tsx:120` finishTime 空字符串是 falsy，用户清空完成时间后输入框变禁用态不可重输
+- [x] 12. **[Bug]** `LedgerParsePage.tsx:36` useEffect 依赖数组仅 `[ledgerParsed]`，闭包中 `extractionExtractor`/`currentUser` 可能过时
+- [x] 13. **[安全]** `middleware.js:28` `requirePerm` 未校验 `is_active`，禁用用户的 JWT 在有效期内仍可访问
+- [x] 14. **[Bug]** `routes/users.js:80` 用户硬删除与 `dt_api_tokens` 外键冲突（无 ON DELETE CASCADE），删有Token的用户报500
+- [x] 15. **[Bug]** `routes/tokens.js:25` `expires_at` 存入时间用了 `toISOString()`（UTC），过期判断比预期早8小时
+- [x] 16. **[同步]** `sidebar.js` vs `content.js` DOM提取与文本解析的处理人逻辑完全不同：DOM有 `isCoordinator` 分支，文本解析没有
+- [x] 17. **[同步]** `parser.js` vs `ledger.ts` 整个 parser.js 是 ledger.ts 的手动移植拷贝，无自动化同步机制，极易遗漏
+- [x] 18. **[Bug]** `utils/log.js:11` `oldValue || null` 和 `newValue || null` 在值为0或空字符串时误转为null，应用 `?? null`
+- [x] 19. **[Bug]** `routes/extraction.js:53` UPDATE 未校验 `is_visible`，可修改已软删除的提取记录
 
 ## P2 - 应该修复
 
 - [ ] 20. **[架构]** `useLedger.tsx` 457行hook承载20+state和35+返回值，严重违反单一职责，应拆分
-- [ ] 21. **[规范]** `useLedger.tsx:187,259` diff比较逻辑完全重复（已删除记录路径和更新路径），应抽取 `computeDiff` 函数
-- [ ] 22. **[安全]** `manifest.json:34` `host_permissions` 对所有站点开放请求权限
-- [ ] 23. **[安全]** `server.js:22` CORS 全开放 `cors()`，生产应限制 Origin
-- [ ] 24. **[架构]** `routes/translations.js:167` 导入事务内日志与 `writeLog` 不兼容（不同连接无法回滚），writeLog 应支持传入 client
-- [ ] 25. **[一致性]** `init.js:311` 每次启动强制覆盖内置角色权限，管理员自定义权限重启后丢失
-- [ ] 26. **[安全]** `db.js:37,init.js:13` `pgSchema` 直接拼入 DDL/连接参数，应加白名单校验
-- [ ] 27. **[安全]** 全局多处 `res.status(500).json({ error: err.message })` 泄露 SQL 语句等内部信息
-- [ ] 28. **[类型]** `api/index.ts` `login`/`me`/`usersList`/`rolesList` 等返回 `any`，缺少 `User`/`Role`/`Permission` 类型定义
-- [ ] 29. **[UX]** 多处组件 写入台账/导入/删除等操作无 loading 状态反馈，用户可能重复点击
-- [ ] 30. **[规范]** `LedgerManagePage.tsx:336-369` 5列提取记录重复相同删除样式判断，应抽取 helper
-- [ ] 31. **[性能]** `ManagePage.tsx:179` `filteredData.indexOf(record)` 在多列渲染中反复 O(n) 查找
-- [ ] 32. **[一致性]** `AnnouncementsPage.tsx` 删除样式 `color:'#999'` 和 LedgerManagePage 的 `rgba(0,0,0,0.25)` 不统一
-- [ ] 33. **[样式]** 全局多处 大量硬编码颜色 `#1677ff`/`rgba(0,0,0,0.45)` 等，未用 antd theme token
+- [x] 21. **[规范]** `useLedger.tsx:187,259` diff比较逻辑完全重复（已删除记录路径和更新路径），应抽取 `computeDiff` 函数
+- [x] 22. **[安全]** `manifest.json:34` `host_permissions` 对所有站点开放请求权限
+- [x] 23. **[安全]** `server.js:22` CORS 全开放 `cors()`，生产应限制 Origin
+- [x] 24. **[架构]** `routes/translations.js:167` 导入事务内日志与 `writeLog` 不兼容（不同连接无法回滚），writeLog 应支持传入 client
+- [x] 25. **[一致性]** `init.js:311` 每次启动强制覆盖内置角色权限，管理员自定义权限重启后丢失
+- [x] 26. **[安全]** `db.js:37,init.js:13` `pgSchema` 直接拼入 DDL/连接参数，应加白名单校验
+- [x] 27. **[安全]** 全局多处 `res.status(500).json({ error: err.message })` 泄露 SQL 语句等内部信息
+- [x] 28. **[类型]** `api/index.ts` `login`/`me`/`usersList`/`rolesList` 等返回 `any`，缺少 `User`/`Role`/`Permission` 类型定义
+- [x] 29. **[UX]** 多处组件 写入台账/导入/删除等操作无 loading 状态反馈，用户可能重复点击
+- [x] 30. **[规范]** `LedgerManagePage.tsx:336-369` 5列提取记录重复相同删除样式判断，应抽取 helper
+- [x] 31. **[性能]** `ManagePage.tsx:179` `filteredData.indexOf(record)` 在多列渲染中反复 O(n) 查找
+- [x] 32. **[一致性]** `AnnouncementsPage.tsx` 删除样式 `color:'#999'` 和 LedgerManagePage 的 `rgba(0,0,0,0.25)` 不统一
+- [x] 33. **[样式]** 全局多处 大量硬编码颜色 `#1677ff`/`rgba(0,0,0,0.45)` 等，未用 antd theme token
 
 ## P3 - 可以后续优化
 

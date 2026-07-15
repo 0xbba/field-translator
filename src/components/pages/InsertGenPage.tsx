@@ -2,6 +2,7 @@ import { Card, Typography, Divider, Input, Select, Button, Table, Switch, Upload
 import type { UploadProps } from 'antd'
 import { InboxOutlined, TableOutlined, CodeOutlined, CopyOutlined, CheckOutlined, DownloadOutlined } from '@ant-design/icons'
 import type { UseInsertReturn } from '../../hooks/useInsert'
+import { COLORS } from '../../constants'
 import { useAppContext } from '../../contexts/AppContext'
 import { timestamp } from '../../utils/format'
 import type { InsertField, InsertDialect } from '../../types'
@@ -42,7 +43,7 @@ export default function InsertGenPage({ insertHook }: InsertGenPageProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <Typography.Text strong style={{ fontSize: '0.95rem' }}>上传数据文件</Typography.Text>
         </div>
-        <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12 }}>
+        <p style={{ fontSize: '0.75rem', color: COLORS.textTertiary, marginBottom: 12 }}>
           上传包含数据的 Excel 文件，自动解析列名和数据
         </p>
 
@@ -61,8 +62,8 @@ export default function InsertGenPage({ insertHook }: InsertGenPageProps) {
         {insertExcelData && (
           <>
             <Divider style={{ margin: '12px 0' }} />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: 'rgba(0,0,0,0.88)' }}>
-              <TableOutlined style={{ fontSize: 16, color: '#1677ff' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: COLORS.textPrimary }}>
+              <TableOutlined style={{ fontSize: 16, color: COLORS.primary }} />
               <span style={{ fontWeight: 700 }}>{insertExcelData.length} 行 × {insertExcelHeaders.length} 列</span>
             </div>
           </>
@@ -75,19 +76,19 @@ export default function InsertGenPage({ insertHook }: InsertGenPageProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <Typography.Text strong style={{ fontSize: '0.95rem' }}>配置字段</Typography.Text>
           </div>
-          <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12 }}>
+          <p style={{ fontSize: '0.75rem', color: COLORS.textTertiary, marginBottom: 12 }}>
             设置目标表名和字段引号规则，支持解析 CREATE TABLE 语句自动推断
           </p>
 
           {/* 表名 + 目标库 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.88)', fontWeight: 700, whiteSpace: 'nowrap' }}>表名</span>
+              <span style={{ fontSize: '0.85rem', color: COLORS.textPrimary, fontWeight: 700, whiteSpace: 'nowrap' }}>表名</span>
               <Input size="small" value={insertTableName} onChange={e => setInsertTableName(e.target.value)}
                 placeholder="输入目标表名" style={{ width: 220 }} />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.88)', fontWeight: 700, whiteSpace: 'nowrap' }}>目标库</span>
+              <span style={{ fontSize: '0.85rem', color: COLORS.textPrimary, fontWeight: 700, whiteSpace: 'nowrap' }}>目标库</span>
               <Select size="small" value={insertDialect} onChange={v => setInsertDialect(v as InsertDialect)} style={{ width: 120 }}>
                 <Select.Option value="hive">Hive</Select.Option>
                 <Select.Option value="pg">PostgreSQL</Select.Option>
@@ -97,7 +98,7 @@ export default function InsertGenPage({ insertHook }: InsertGenPageProps) {
 
           {/* 解析输入区 */}
           <div style={{ marginBottom: 12 }}>
-            <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 8 }}>
+            <p style={{ fontSize: '0.75rem', color: COLORS.textTertiary, marginBottom: 8 }}>
               粘贴 CREATE TABLE 语句或字段定义（如 <code style={{ fontFamily: 'monospace', background: 'rgba(22,119,255,0.08)', padding: '1px 4px', borderRadius: 4 }}>schema.table.field type</code>），点击解析自动填充
             </p>
             <Input.TextArea value={insertParseText} onChange={e => setInsertParseText(e.target.value)}
@@ -123,7 +124,7 @@ export default function InsertGenPage({ insertHook }: InsertGenPageProps) {
                 key: 'excelCol',
                 width: 180,
                 ellipsis: true,
-                render: (_, record, index) => <span style={!record.enabled ? { color: 'rgba(0,0,0,0.25)' } : undefined}>{insertExcelHeaders[index] ?? '-'}</span>,
+                render: (_, record, index) => <span style={!record.enabled ? { color: COLORS.textQuaternary } : undefined}>{insertExcelHeaders[index] ?? '-'}</span>,
               },
               {
                 title: '字段名',
@@ -142,10 +143,10 @@ export default function InsertGenPage({ insertHook }: InsertGenPageProps) {
                 fixed: 'right' as const,
                 render: (_, record, index) => (
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'rgba(0,0,0,0.65)', whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: COLORS.textSecondary, whiteSpace: 'nowrap' }}>
                       导入<Switch size="small" checked={record.enabled} onChange={checked => { const nf = [...insertFields]; nf[index] = { ...nf[index], enabled: checked }; setInsertFields(nf) }} />
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'rgba(0,0,0,0.65)', whiteSpace: 'nowrap' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: COLORS.textSecondary, whiteSpace: 'nowrap' }}>
                       引号<Switch size="small" checked={record.quoted} onChange={checked => { const nf = [...insertFields]; nf[index] = { ...nf[index], quoted: checked }; setInsertFields(nf) }} />
                     </span>
                   </div>
@@ -193,7 +194,7 @@ export default function InsertGenPage({ insertHook }: InsertGenPageProps) {
             <Typography.Text strong style={{ fontSize: '0.95rem' }}>生成结果</Typography.Text>
           </div>
           <div style={{ marginBottom: 12 }}>
-            <span style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)' }}>{insertDialect === 'pg' ? 'PostgreSQL' : 'Hive'}，{insertExcelData?.length ?? 0} 条语句</span>
+            <span style={{ fontSize: '0.75rem', color: COLORS.textTertiary }}>{insertDialect === 'pg' ? 'PostgreSQL' : 'Hive'}，{insertExcelData?.length ?? 0} 条语句</span>
           </div>
           <Input.TextArea
             value={insertResult}
@@ -207,7 +208,7 @@ export default function InsertGenPage({ insertHook }: InsertGenPageProps) {
       {/* 步骤4：数据预览（上传后显示） */}
       {insertExcelData && (
         <Card>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: 'rgba(0,0,0,0.88)', marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: COLORS.textPrimary, marginBottom: 12 }}>
             <span style={{ fontWeight: 700 }}>数据预览</span>
           </div>
           <Table

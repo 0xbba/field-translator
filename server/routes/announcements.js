@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { pool } from '../db.js'
-import { requirePerm, getUserInfo } from '../middleware.js'
+import { requirePerm, getUserInfo, safeError } from '../middleware.js'
 import { writeLog } from '../utils/log.js'
 
 const router = Router()
@@ -23,7 +23,7 @@ router.get('/', async (_req, res) => {
     })))
   } catch (err) {
     console.error('[GET /api/announcements]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -59,7 +59,7 @@ router.get('/all', requirePerm('announcement_manage'), async (req, res) => {
     })
   } catch (err) {
     console.error('[GET /api/announcements/all]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -84,7 +84,7 @@ router.post('/', requirePerm('announcement_manage'), async (req, res) => {
     res.json({ id: result.rows[0].id })
   } catch (err) {
     console.error('[POST /api/announcements]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -119,7 +119,7 @@ router.put('/:id', requirePerm('announcement_manage'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/announcements/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -132,7 +132,7 @@ router.delete('/:id', requirePerm('announcement_manage'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[DELETE /api/announcements/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -145,7 +145,7 @@ router.put('/:id/restore', requirePerm('announcement_manage'), async (req, res) 
     res.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/announcements/:id/restore]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 

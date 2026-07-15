@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Card, Input, Button, Typography, App as AntApp } from 'antd'
 import { UserOutlined, LockOutlined, GlobalOutlined } from '@ant-design/icons'
+import { COLORS } from './constants'
 
 export interface AuthUser {
   id: number
@@ -43,7 +44,7 @@ export default function Login({ onLogin }: LoginProps) {
           <div style={{
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             width: 48, height: 48, borderRadius: 10,
-            background: '#1677ff', color: '#fff', marginBottom: 12,
+            background: COLORS.primary, color: '#fff', marginBottom: 12,
           }}>
             <GlobalOutlined style={{ fontSize: 24 }} />
           </div>

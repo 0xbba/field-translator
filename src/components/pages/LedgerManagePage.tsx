@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx'
 import dayjs from 'dayjs'
 import type { UseLedgerReturn } from '../../hooks/useLedger'
 import type { LedgerRecord, LogEntry, ExtractionRecord } from '../../types'
-import { LEDGER_FIELDS, LOG_PAGE_SIZE, PAGE_SIZE_OPTIONS } from '../../constants'
+import { LEDGER_FIELDS, LOG_PAGE_SIZE, PAGE_SIZE_OPTIONS, COLORS } from '../../constants'
 import { formatLogValue, timestamp } from '../../utils/format'
 import { useAppContext } from '../../contexts/AppContext'
 import { Api } from '../../api'
@@ -56,6 +56,10 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
   const [addExtractor, setAddExtractor] = useState('')
   const [addSupervisor, setAddSupervisor] = useState('')
   const [addRemark, setAddRemark] = useState('')
+
+  // 已删除提取记录的统一样式
+  const deletedStyle = (record: ExtractionRecord) =>
+    record.isVisible === false ? { textDecoration: 'line-through', color: COLORS.textQuaternary } : {}
 
   // 加载用户 displayName 列表
   useEffect(() => {
@@ -140,8 +144,8 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: 'rgba(0,0,0,0.88)' }}>
-          <HddOutlined style={{ fontSize: 16, color: '#1677ff' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', color: COLORS.textPrimary }}>
+          <HddOutlined style={{ fontSize: 16, color: COLORS.primary }} />
           <span style={{ fontWeight: 700 }}>{showDeletedLedger ? `共 ${deletedLedgerData.length} 条已删除记录` : `共 ${ledgerTotal} 条台账记录`}</span>
         </div>
         <Divider type="vertical" style={{ height: 24 }} />
@@ -172,7 +176,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
           } catch (e: any) { message.error(e.message || '导出失败') }
         }} disabled={ledgerTotal === 0 && ledgerData.length === 0} icon={<DownloadOutlined style={{ fontSize: 14 }} />}>导出Excel</Button>
         {(hasPerm('ledger_delete') || hasPerm('ledger_restore')) && !offlineMode && dataMode === 'database' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem', color: 'rgba(0,0,0,0.65)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.8rem', color: COLORS.textSecondary }}>
             <Switch size="small" checked={showDeletedLedger} onChange={setShowDeletedLedger} />
             <span>已删除</span>
           </div>
@@ -300,19 +304,19 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
             <div style={{ padding: '12px 16px', background: '#fafafa', borderRadius: 6, border: '1px dashed #d9d9d9' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>数据条数</span>
+                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>数据条数</span>
                   <Input type="number" value={addRecordCount} onChange={e => setAddRecordCount(e.target.value)} placeholder="请输入数据条数" style={{ flex: 1 }} onPressEnter={handleExtractionAdd} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>取数人</span>
+                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>取数人</span>
                   <Input value={addExtractor} onChange={e => setAddExtractor(e.target.value)} placeholder="请输入取数人" style={{ flex: 1 }} onPressEnter={handleExtractionAdd} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>监督人</span>
+                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>监督人</span>
                   <AutoComplete value={addSupervisor} onChange={v => setAddSupervisor(v)} options={supervisorOptions} style={{ flex: 1 }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} placeholder="请选择或输入监督人" />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>备注</span>
+                  <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>备注</span>
                   <Input value={addRemark} onChange={e => setAddRemark(e.target.value)} placeholder="选填" style={{ flex: 1 }} onPressEnter={handleExtractionAdd} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
@@ -334,38 +338,23 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
           columns={[
             {
               title: '数据条数', dataIndex: 'recordCount', key: 'recordCount', width: 100, sorter: (a, b) => (a.recordCount || 0) - (b.recordCount || 0),
-              render: (v, record) => {
-                const style = record.isVisible === false ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.25)' } : {}
-                return <span style={style}>{v}</span>
-              },
+              render: (v, record) => <span style={deletedStyle(record)}>{v}</span>,
             },
             {
               title: '取数人', dataIndex: 'extractor', key: 'extractor', width: 100, sorter: (a, b) => (a.extractor || '').localeCompare(b.extractor || ''),
-              render: (v, record) => {
-                const style = record.isVisible === false ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.25)' } : {}
-                return <span style={style}>{v || '-'}</span>
-              },
+              render: (v, record) => <span style={deletedStyle(record)}>{v || '-'}</span>,
             },
             {
               title: '监督人', dataIndex: 'supervisor', key: 'supervisor', width: 100, sorter: (a, b) => (a.supervisor || '').localeCompare(b.supervisor || ''),
-              render: (v, record) => {
-                const style = record.isVisible === false ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.25)' } : {}
-                return <span style={style}>{v || '-'}</span>
-              },
+              render: (v, record) => <span style={deletedStyle(record)}>{v || '-'}</span>,
             },
             {
               title: '备注', dataIndex: 'remark', key: 'remark', width: 150, ellipsis: true,
-              render: (v, record) => {
-                const style = record.isVisible === false ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.25)' } : {}
-                return <span style={style}>{v || '-'}</span>
-              },
+              render: (v, record) => <span style={deletedStyle(record)}>{v || '-'}</span>,
             },
             {
               title: '时间', dataIndex: 'createDate', key: 'createDate', width: 160, sorter: (a, b) => (a.createDate || '').localeCompare(b.createDate || ''),
-              render: (v, record) => {
-                const style = record.isVisible === false ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.25)' } : {}
-                return <span style={style}>{v ? dayjs(v).format('YYYY-MM-DD HH:mm:ss') : '-'}</span>
-              },
+              render: (v, record) => <span style={deletedStyle(record)}>{v ? dayjs(v).format('YYYY-MM-DD HH:mm:ss') : '-'}</span>,
             },
             {
               title: '操作', key: 'actions', width: 120, align: 'center' as const, fixed: 'right' as const,
@@ -401,19 +390,19 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
           {extractionEditRecord && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>数据条数</span>
+                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>数据条数</span>
                 <Input type="number" value={extractionEditRecord.recordCount ?? ''} onChange={e => setExtractionEditRecord({ ...extractionEditRecord, recordCount: parseInt(e.target.value) || 0 })} style={{ flex: 1 }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>取数人</span>
+                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>取数人</span>
                 <Input value={extractionEditRecord.extractor || ''} onChange={e => setExtractionEditRecord({ ...extractionEditRecord, extractor: e.target.value })} style={{ flex: 1 }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>监督人</span>
+                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>监督人</span>
                 <AutoComplete value={extractionEditRecord.supervisor || ''} onChange={v => setExtractionEditRecord({ ...extractionEditRecord, supervisor: v })} options={supervisorOptions} style={{ flex: 1 }} filterOption={(input, option) => (option?.value ?? '').toLowerCase().includes(input.toLowerCase())} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>备注</span>
+                <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>备注</span>
                 <Input value={extractionEditRecord.remark || ''} onChange={e => setExtractionEditRecord({ ...extractionEditRecord, remark: e.target.value })} placeholder="选填" style={{ flex: 1 }} />
               </div>
             </div>
@@ -447,7 +436,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {LEDGER_FIELDS.map(f => (
               <div key={f.key} style={{ display: 'flex', alignItems: f.key === 'requestTitle' || f.key === 'requestReason' || f.key === 'requestDataContent' ? 'flex-start' : 'center', gap: 8 }}>
-                <span style={{ width: 100, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>{f.label}</span>
+                <span style={{ width: 100, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: COLORS.textSecondary }}>{f.label}</span>
                 {f.key === 'requestTitle' || f.key === 'requestReason' || f.key === 'requestDataContent' ? (
                   <Input.TextArea value={ledgerEditRecord[f.key] || ''} onChange={e => setLedgerEditRecord({ ...ledgerEditRecord, [f.key]: e.target.value })} autoSize={{ minRows: 2, maxRows: 6 }} style={{ flex: 1 }} />
                 ) : (f as any).readonly ? (
@@ -472,12 +461,12 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
         footer={
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
             <Button type="default" size="small" onClick={() => { logPaginationRef.current = true; setLedgerLogPage(Math.max(1, ledgerLogPage - 1)) }} disabled={ledgerLogPage <= 1}>上一页</Button>
-            <span style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.45)' }}>每页 {LOG_PAGE_SIZE} 条 | {ledgerLogPage} / {ledgerLogTotalPages}</span>
+            <span style={{ fontSize: '0.85rem', color: COLORS.textTertiary }}>每页 {LOG_PAGE_SIZE} 条 | {ledgerLogPage} / {ledgerLogTotalPages}</span>
             <Button type="default" size="small" onClick={() => { logPaginationRef.current = true; setLedgerLogPage(Math.min(ledgerLogTotalPages, ledgerLogPage + 1)) }} disabled={ledgerLogPage >= ledgerLogTotalPages}>下一页</Button>
           </div>
         }
       >
-        <p style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12, textAlign: 'center' }}>
+        <p style={{ fontSize: '0.85rem', color: COLORS.textTertiary, marginBottom: 12, textAlign: 'center' }}>
           {ledgerLogFieldName ? <span>单号 <Typography.Text code>{ledgerLogFieldName}</Typography.Text></span> : ledgerLogRecordId ? `记录 #${ledgerLogRecordId}` : '全部'}的变更日志，共 <Typography.Text strong>{ledgerLogTotal}</Typography.Text> 条
         </p>
         {ledgerLogData.length === 0 ? (

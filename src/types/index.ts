@@ -124,3 +124,41 @@ export interface Announcement {
   createDate?: string
   lastModified?: string
 }
+
+// ============ 用户信息（认证/管理） ============
+export interface AuthUser {
+  id: number
+  username: string
+  displayName: string
+  role: string
+  roleName: string
+  permissions: string[]
+}
+
+export interface UserItem {
+  id: number
+  username: string
+  role: string
+  displayName: string
+  isActive: boolean
+  createDate: string
+  lastModified: string
+}
+
+// ============ 角色信息（管理） ============
+export interface RoleItem {
+  id: number
+  role_key: string
+  role_name: string
+  permissions: string[]
+  is_builtin: boolean
+  create_date: string
+  last_modified: string
+}
+
+// ============ 权限树节点 ============
+export interface PermissionNode {
+  key: string
+  label: string
+  children?: PermissionNode[]
+}

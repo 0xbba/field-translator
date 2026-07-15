@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { pool } from '../db.js'
-import { requirePerm } from '../middleware.js'
+import { requirePerm, safeError } from '../middleware.js'
 
 const router = Router()
 
@@ -11,7 +11,7 @@ router.get('/', requirePerm('role_manage'), async (_req, res) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[GET /api/roles]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -28,7 +28,7 @@ router.post('/', requirePerm('role_manage'), async (req, res) => {
   } catch (err) {
     console.error('[POST /api/roles]', err)
     if (err.code === '23505') return res.status(400).json({ error: '角色标识已存在' })
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -49,7 +49,7 @@ router.put('/:id', requirePerm('role_manage'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/roles/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -66,7 +66,7 @@ router.delete('/:id', requirePerm('role_manage'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[DELETE /api/roles/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 

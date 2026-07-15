@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Modal, Button, Table, Radio, Typography } from 'antd'
 import type { ImportConflict } from '../../types'
+import { COLORS } from '../../constants'
 
 interface ConflictRow extends ImportConflict {
   action: 'skip' | 'add'
@@ -43,7 +44,7 @@ export default function ImportConflictModal({ open, conflicts, onConfirm, onCanc
         </div>
       }
     >
-      <p style={{ fontSize: '0.85rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12, textAlign: 'center' }}>
+      <p style={{ fontSize: '0.85rem', color: COLORS.textTertiary, marginBottom: 12, textAlign: 'center' }}>
         以下 {conflicts.length} 条记录的字段名已存在但翻译不同，请选择对冲突记录的处理方式：
       </p>
       <Table

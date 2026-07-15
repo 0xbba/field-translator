@@ -7,6 +7,30 @@ import type { LedgerRecord, LogEntry } from '../types'
 
 import type { HookAPI as ModalAPI } from 'antd/es/modal/useModal'
 
+// 重复检测用的字段标签（台账所有可比较字段）
+const DIFF_LABELS: Record<string, string> = {
+  requestTime: '申请时间', applicant: '申请员工', applicantPhone: '申请员工电话',
+  applicantDept: '申请部门', requestTitle: '申请标题', requestReason: '申请事由',
+  requestDataContent: '申请数据内容', processor: '处理人', finishTime: '完成时间',
+}
+
+/** 比较两条台账记录的变动字段，返回有差异的字段 key → 新值 */
+function computeDiff(newRecord: any, oldRecord: any): Record<string, string> {
+  const fields: Record<string, string> = {}
+  for (const key of Object.keys(DIFF_LABELS)) {
+    const newVal = (newRecord as any)[key] ?? ''
+    const oldVal = (oldRecord as any)[key] ?? ''
+    if (key === 'finishTime' && (!newVal || oldVal)) continue
+    if ((key === 'requestTime' || key === 'finishTime') && oldVal && newVal) {
+      const oldTs = new Date(oldVal).getTime()
+      const newTs = new Date(newVal).getTime()
+      if (!isNaN(oldTs) && !isNaN(newTs) && oldTs === newTs) continue
+    }
+    if (newVal !== oldVal && newVal !== '') fields[key] = newVal
+  }
+  return fields
+}
+
 export interface UseLedgerReturn {
   // 列表状态
   ledgerData: LedgerRecord[]
@@ -184,24 +208,12 @@ export function useLedger(
 
     // ---- 如果不存在可见记录但存在已删除记录 → 弹窗确认恢复+diff ----
     if (!existing && deletedExisting && dataMode === 'database' && !offlineMode && deletedExisting._dbId) {
-      const diffLabels: Record<string, string> = { requestTime: '申请时间', applicant: '申请员工', applicantPhone: '申请员工电话', applicantDept: '申请部门', requestTitle: '申请标题', requestReason: '申请事由', requestDataContent: '申请数据内容', processor: '处理人', finishTime: '完成时间' }
-      const fields: Record<string, string> = {}
-      for (const key of Object.keys(diffLabels)) {
-        const newVal = (ledgerParsed as any)[key] ?? ''
-        const oldVal = (deletedExisting as any)[key] ?? ''
-        if (key === 'finishTime' && (!newVal || oldVal)) continue
-        if ((key === 'requestTime' || key === 'finishTime') && oldVal && newVal) {
-          const oldTs = new Date(oldVal).getTime()
-          const newTs = new Date(newVal).getTime()
-          if (!isNaN(oldTs) && !isNaN(newTs) && oldTs === newTs) continue
-        }
-        if (newVal !== oldVal && newVal !== '') fields[key] = newVal
-      }
+      const fields = computeDiff(ledgerParsed, deletedExisting)
 
       const hasChanges = Object.keys(fields).length > 0
       const diffRows = Object.entries(fields).map(([k, v]) => ({
         key: k,
-        field: diffLabels[k] || k,
+        field: DIFF_LABELS[k] || k,
         oldValue: (deletedExisting as any)[k] ?? '',
         newValue: v,
       }))
@@ -255,22 +267,7 @@ export function useLedger(
 
     // ---- 可见记录已存在 → 变动字段更新 ----
     if (existing) {
-      // 比较变动字段（排除 requestNo 本身）
-      const diffLabels: Record<string, string> = { requestTime: '申请时间', applicant: '申请员工', applicantPhone: '申请员工电话', applicantDept: '申请部门', requestTitle: '申请标题', requestReason: '申请事由', requestDataContent: '申请数据内容', processor: '处理人', finishTime: '完成时间' }
-      const fields: Record<string, string> = {}
-      for (const key of Object.keys(diffLabels)) {
-        const newVal = (ledgerParsed as any)[key] ?? ''
-        const oldVal = (existing as any)[key] ?? ''
-        // finishTime：空值不覆盖；数据库已有值不覆盖（避免NOW()与实际完成时间差几秒反复提示）
-        if (key === 'finishTime' && (!newVal || oldVal)) continue
-        // 时间字段：比较时间戳，相同则跳过（数据库存UTC，解析出本地时间，字符串不同但时刻相同）
-        if ((key === 'requestTime' || key === 'finishTime') && oldVal && newVal) {
-          const oldTs = new Date(oldVal).getTime()
-          const newTs = new Date(newVal).getTime()
-          if (!isNaN(oldTs) && !isNaN(newTs) && oldTs === newTs) continue
-        }
-        if (newVal !== oldVal && newVal !== '') fields[key] = newVal
-      }
+      const fields = computeDiff(ledgerParsed, existing)
 
       if (Object.keys(fields).length === 0 && !hasExtraction) {
         message.info('该单号已存在，且无变动字段')
@@ -293,7 +290,7 @@ export function useLedger(
       // 有变动 → 弹窗确认
       const diffRows = Object.entries(fields).map(([k, v]) => ({
         key: k,
-        field: diffLabels[k] || k,
+        field: DIFF_LABELS[k] || k,
         oldValue: (existing as any)[k] ?? '',
         newValue: v,
       }))

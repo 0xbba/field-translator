@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { pool } from '../db.js'
-import { requirePerm } from '../middleware.js'
+import { requirePerm, safeError } from '../middleware.js'
 
 const router = Router()
 
@@ -12,7 +12,7 @@ router.get('/', requirePerm('user_manage'), async (_req, res) => {
     res.json(result.rows.map(r => ({ id: r.id, username: r.username, role: r.role, displayName: r.display_name || '', isActive: r.is_active, createDate: r.create_date, lastModified: r.last_modified })))
   } catch (err) {
     console.error('[GET /api/users]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -23,7 +23,7 @@ router.get('/display-names', async (_req, res) => {
     res.json(result.rows.map(r => r.display_name))
   } catch (err) {
     console.error('[GET /api/users/display-names]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -45,7 +45,7 @@ router.post('/', requirePerm('user_manage'), async (req, res) => {
   } catch (err) {
     console.error('[POST /api/users]', err)
     if (err.code === '23505') return res.status(400).json({ error: '用户名已存在' })
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -68,7 +68,7 @@ router.put('/:id', requirePerm('user_manage'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/users/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -81,7 +81,7 @@ router.delete('/:id', requirePerm('user_manage'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[DELETE /api/users/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 

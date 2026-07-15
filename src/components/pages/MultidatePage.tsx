@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Card, Typography, Segmented, DatePicker, Button, Tag, Input, Collapse } from 'antd'
 import { CopyOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons'
 import type { UseMultidateReturn } from '../../hooks/useMultidate'
-import { MD_PLACEHOLDERS, MD_FORMAT } from '../../constants'
+import { MD_PLACEHOLDERS, MD_FORMAT, COLORS } from '../../constants'
 import { useAppContext } from '../../contexts/AppContext'
 import type { MdPicker } from '../../types'
 
@@ -31,7 +31,7 @@ export default function MultidatePage({ multidateHook }: MultidatePageProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       <Card>
         <Typography.Text strong style={{ fontSize: '0.95rem' }}>多账期SQL生成</Typography.Text>
-        <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12, marginTop: 4 }}>
+        <p style={{ fontSize: '0.75rem', color: COLORS.textTertiary, marginBottom: 12, marginTop: 4 }}>
           选择账期范围，编写含占位符的SQL模板，自动生成每个账期的SQL语句
         </p>
 
@@ -60,7 +60,7 @@ export default function MultidatePage({ multidateHook }: MultidatePageProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, whiteSpace: 'nowrap' }}>SQL模板</span>
             <Tag color="processing" style={{ fontSize: '0.7rem' }}>{MD_PLACEHOLDERS[mdPicker]}</Tag>
-            <span style={{ fontSize: '0.7rem', color: 'rgba(0,0,0,0.45)', whiteSpace: 'nowrap' }}>占位符 {MD_PLACEHOLDERS[mdPicker]} 将被替换为对应账期</span>
+            <span style={{ fontSize: '0.7rem', color: COLORS.textTertiary, whiteSpace: 'nowrap' }}>占位符 {MD_PLACEHOLDERS[mdPicker]} 将被替换为对应账期</span>
           </div>
           <Input.TextArea
             value={mdTemplate}

@@ -5,6 +5,7 @@ import {
 import { InboxOutlined, DownloadOutlined, TableOutlined, CloseOutlined, DeleteOutlined, SnippetsOutlined, CopyOutlined, CheckOutlined, PlusOutlined, PlusCircleOutlined } from '@ant-design/icons'
 import type { UseMappingReturn } from '../../hooks/useMapping'
 import { useAppContext } from '../../contexts/AppContext'
+import { COLORS } from '../../constants'
 import { Api } from '../../api'
 import { parsePastedHeaders } from '../../utils/translation'
 import type { ColumnData } from '../../types'
@@ -45,7 +46,7 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
           <Typography.Text strong style={{ fontSize:'0.95rem' }}>输入待翻译字段</Typography.Text>
         </div>
-        <p style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.45)', marginBottom: 12 }}>
+        <p style={{ fontSize: '0.75rem', color: COLORS.textTertiary, marginBottom: 12 }}>
           上传文件或粘贴首行字段名，自动翻译
         </p>
 
@@ -100,7 +101,7 @@ export default function TranslatePage({ mappingHook }: TranslatePageProps) {
           {pasteValue.trim() && <Tag color="processing">{parsePastedHeaders(pasteValue).length} 个字段</Tag>}
           {targetFileName && !pasteValue.trim() && (
             <>
-              <TableOutlined style={{ fontSize: 16, color: '#1677ff' }} />
+              <TableOutlined style={{ fontSize: 16, color: COLORS.primary }} />
               <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{targetFileName}</span>
               <Tag color="processing">{columns.length} 个字段</Tag>
             </>

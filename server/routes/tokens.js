@@ -2,7 +2,7 @@ import { Router } from 'express'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import { pool } from '../db.js'
-import { authMiddleware } from '../middleware.js'
+import { authMiddleware, safeError } from '../middleware.js'
 
 const router = Router()
 
@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
     })
   } catch (err) {
     console.error('[POST /api/auth/tokens]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -64,7 +64,7 @@ router.get('/', async (req, res) => {
     })))
   } catch (err) {
     console.error('[GET /api/auth/tokens]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -80,7 +80,7 @@ router.delete('/:id', async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[DELETE /api/auth/tokens/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 

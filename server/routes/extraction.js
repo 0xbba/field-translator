@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { pool } from '../db.js'
-import { requirePerm, getUserInfo } from '../middleware.js'
+import { requirePerm, getUserInfo, safeError } from '../middleware.js'
 import { writeLog } from '../utils/log.js'
 
 const router = Router()
@@ -27,7 +27,7 @@ router.get('/:requestNo', async (req, res) => {
     })))
   } catch (err) {
     console.error('[GET /api/extraction/:requestNo]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -45,7 +45,7 @@ router.post('/', requirePerm('ledger_parse'), async (req, res) => {
     res.json({ id: result.rows[0].id })
   } catch (err) {
     console.error('[POST /api/extraction]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -72,7 +72,7 @@ router.put('/:id', requirePerm('ledger_edit'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/extraction/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -85,7 +85,7 @@ router.delete('/:id', requirePerm('ledger_delete'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[DELETE /api/extraction/:id]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 
@@ -98,7 +98,7 @@ router.put('/:id/restore', requirePerm('ledger_restore'), async (req, res) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[PUT /api/extraction/:id/restore]', err)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: safeError(err) })
   }
 })
 

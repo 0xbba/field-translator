@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import type React from 'react'
 import { Api } from '../api'
 import type { MappingItem, LogEntry, ImportConflict } from '../types'
@@ -53,7 +53,8 @@ export interface UseManageReturn {
   restoreItem: (item: MappingItem) => void
   addItem: () => void
   applySearch: () => void
-  fetchLogs: (recordId?: number, fieldName?: string) => Promise<void>
+  fetchLogs: (recordId?: number, fieldName?: string, page?: number) => Promise<void>
+  handleLogPageChange: (p: number) => void
   confirmImportConflicts: () => void
   handleExportMapping: () => void
 
@@ -176,13 +177,27 @@ export function useManage(
   useEffect(() => { setCurrentPage(1) }, [manageSearch])
   useEffect(() => { if (searchExact !== undefined) applySearch() }, [searchExact]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchLogs = useCallback(async (recordId?: number, fieldName?: string) => {
+  const fetchLogs = useCallback(async (recordId?: number, fieldName?: string, page?: number) => {
     try {
-      const res = await Api.logs(recordId, fieldName, logPage)
+      const usePage = page ?? logPage
+      const res = await Api.logs(recordId, fieldName, usePage)
       setLogData(res.data); setLogTotal(res.total)
       setLogTotalPages(Math.max(1, Math.ceil(res.total / LOG_PAGE_SIZE)))
     } catch (e: any) { message.error(e.message) }
   }, [logPage, message])
+
+  // 翻页时联动 fetchLogs
+  const logPageChangedRef = useRef(false)
+  const handleLogPageChange = useCallback((p: number) => {
+    logPageChangedRef.current = true
+    setLogPage(p)
+  }, [])
+  useEffect(() => {
+    if (logPageChangedRef.current && logModalOpen && logRecordId != null) {
+      logPageChangedRef.current = false
+      fetchLogs(logRecordId ?? undefined, logFieldName || undefined)
+    }
+  }, [logPage]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const confirmImportConflicts = useCallback(() => {
     if (!importConflicts) return
@@ -209,7 +224,7 @@ export function useManage(
     importConflicts, importNewItems, logModalOpen, logRecordId, logFieldName, logData, logTotal, logPage, logTotalPages,
     setManageSearchInput, setSearchExact, setManagePageSize, setEditingGlobalIdx, setEditOriginal, setEditChinese, setAddOriginal, setAddChinese,
     setImportConflicts, setImportNewItems, setLogModalOpen, setLogRecordId, setLogFieldName, setLogData, setLogTotal, setLogPage,
-    startEdit, saveEdit, deleteItem, restoreItem, addItem, applySearch, fetchLogs, confirmImportConflicts, handleExportMapping,
+    startEdit, saveEdit, deleteItem, restoreItem, addItem, applySearch, fetchLogs, handleLogPageChange, confirmImportConflicts, handleExportMapping,
     filteredData, totalPages, safeCurrentPage,
   }
 }

@@ -285,7 +285,7 @@ function AppContent() {
 
       {/* 公共弹窗 */}
       <ImportConflictModal open={!!manageHook.importConflicts} conflicts={manageHook.importConflicts || []} onConfirm={manageHook.confirmImportConflicts} onCancel={() => manageHook.setImportConflicts(null)} />
-      <LogModal open={manageHook.logModalOpen} data={manageHook.logData} total={manageHook.logTotal} page={manageHook.logPage} totalPages={manageHook.logTotalPages} onPageChange={manageHook.setLogPage} onClose={() => manageHook.setLogModalOpen(false)} />
+      <LogModal open={manageHook.logModalOpen} data={manageHook.logData} total={manageHook.logTotal} page={manageHook.logPage} totalPages={manageHook.logTotalPages} onPageChange={manageHook.handleLogPageChange} onClose={() => manageHook.setLogModalOpen(false)} />
       <PasswordModal open={passwordModalOpen} loading={pwdLoading} oldPwd={pwdOld} newPwd={pwdNew} newPwd2={pwdNew2} onOldPwdChange={setPwdOld} onNewPwdChange={setPwdNew} onNewPwd2Change={setPwdNew2} onOk={handleChangePassword} onCancel={() => setPasswordModalOpen(false)} />
       <TokenModal open={tokenModalOpen} onCancel={() => setTokenModalOpen(false)} />
     </AppContext.Provider>

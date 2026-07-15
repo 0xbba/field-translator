@@ -9,7 +9,7 @@ export const LOG_PAGE_SIZE = 5
 export const PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const
 
 // ============ 版本号 ============
-export const APP_VERSION = 'v1.12.2.20260715'
+export const APP_VERSION = 'v1.12.3.20260715'
 
 // ============ 多账期占位符 ============
 export const MD_PLACEHOLDERS: Record<string, string> = {
@@ -47,3 +47,13 @@ export const TAB_LABELS: Record<string, string> = {
   roles: '角色管理',
   announcements: '公告管理',
 }
+
+// ============ 语义化颜色常量（对齐 antd 5 默认主题 token） ============
+// 替代硬编码颜色值，换主题只需改这里
+export const COLORS = {
+  primary: '#1677ff',                  // colorPrimary
+  textPrimary: 'rgba(0,0,0,0.88)',     // colorText
+  textSecondary: 'rgba(0,0,0,0.65)',   // colorTextSecondary
+  textTertiary: 'rgba(0,0,0,0.45)',    // colorTextTertiary
+  textQuaternary: 'rgba(0,0,0,0.25)',  // colorTextQuaternary
+} as const
