@@ -183,7 +183,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
         size="small"
         loading={dbLoading}
         dataSource={displayLedgerData}
-        rowKey={(record) => String(record._dbId ?? Math.random())}
+        rowKey={(record, index) => String(record._dbId ?? index ?? 0)}
         rowClassName={() => ''}
         scroll={{ x: 1800, y: 'calc(100vh - 290px)' }}
         onChange={(_pagination, _filters, sorter) => {
@@ -402,7 +402,7 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>数据条数</span>
-                <Input type="number" value={extractionEditRecord.recordCount || ''} onChange={e => setExtractionEditRecord({ ...extractionEditRecord, recordCount: parseInt(e.target.value) || 0 })} style={{ flex: 1 }} />
+                <Input type="number" value={extractionEditRecord.recordCount ?? ''} onChange={e => setExtractionEditRecord({ ...extractionEditRecord, recordCount: parseInt(e.target.value) || 0 })} style={{ flex: 1 }} />
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ width: 70, flexShrink: 0, textAlign: 'right', fontSize: '0.85rem', color: 'rgba(0,0,0,0.65)' }}>取数人</span>

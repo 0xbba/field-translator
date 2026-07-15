@@ -5,7 +5,11 @@ function showMsg(containerId, text, type = 'info') {
   // settings-msg-area 仍用内联方式
   if (containerId === 'settings-msg-area') {
     const el = $(containerId)
-    el.innerHTML = `<div class="msg ${type}">${text}</div>`
+    const div = document.createElement('div')
+    div.className = `msg ${type}`
+    div.textContent = text
+    el.innerHTML = ''
+    el.appendChild(div)
     if (type !== 'error') setTimeout(() => { if (el.querySelector('.msg')?.textContent === text) el.innerHTML = '' }, 5000)
     return
   }
@@ -685,7 +689,9 @@ async function loadSettings() {
 function updateConnectionStatus(userInfo, token) {
   const el = $('connection-status')
   if (token && userInfo) {
-    el.innerHTML = `<span style="color:#52c41a">&#10003; 已连接：${userInfo.displayName || userInfo.username} (${userInfo.roleName || userInfo.role || ''})</span>`
+    const name = escHtml(userInfo.displayName || userInfo.username)
+    const role = escHtml(userInfo.roleName || userInfo.role || '')
+    el.innerHTML = `<span style="color:#52c41a">&#10003; 已连接：${name} (${role})</span>`
   } else if (token) {
     el.innerHTML = `<span style="color:#faad14">&#9888; Token已配置，但验证失败</span>`
   } else {
@@ -744,7 +750,7 @@ async function init() {
     const names = await apiRequest('/api/users/display-names')
     if (names && names.length > 0) {
       const datalist = $('supervisor-list')
-      datalist.innerHTML = names.map(n => `<option value="${n}">`).join('')
+      datalist.innerHTML = names.map(n => `<option value="${escAttr(n)}">`).join('')
     }
   } catch {}
 }

@@ -54,11 +54,11 @@ router.put('/:id', requirePerm('ledger_edit'), async (req, res) => {
   try {
     const { id } = req.params
     const { record_count, extractor, supervisor, remark } = req.body
-    const old = await pool.query('SELECT record_count, extractor, supervisor, remark FROM dt_data_extraction_records WHERE id = $1', [id])
+    const old = await pool.query('SELECT record_count, extractor, supervisor, remark FROM dt_data_extraction_records WHERE id = $1 AND is_visible = true', [id])
     const oldRow = old.rows[0]
     if (!oldRow) return res.status(404).json({ error: '记录不存在' })
     await pool.query(
-      'UPDATE dt_data_extraction_records SET record_count = $1, extractor = $2, supervisor = $3, remark = $4, last_modified = NOW() WHERE id = $5',
+      'UPDATE dt_data_extraction_records SET record_count = $1, extractor = $2, supervisor = $3, remark = $4, last_modified = NOW() WHERE id = $5 AND is_visible = true',
       [record_count ?? null, extractor ?? null, supervisor ?? null, remark ?? null, id]
     )
     const labelMap = { record_count: '数据条数', extractor: '取数人', supervisor: '监督人', remark: '备注' }

@@ -281,7 +281,7 @@ export function useLedger(
       if (Object.keys(fields).length === 0 && hasExtraction) {
         if (dataMode !== 'local' && !offlineMode) {
           try {
-            await Api.extractionAdd(parsedRequestNo, recordCountNum, extractionExtractor, extractionSupervisor)
+            await Api.extractionAdd(parsedRequestNo, recordCountNum, extractionExtractor, extractionSupervisor, extractionRemark)
             message.success('提取记录已登记')
           } catch (e: any) { message.error(e.message || '提取记录登记失败') }
         }
@@ -362,7 +362,7 @@ export function useLedger(
       // 写入提取记录
       if (hasExtraction) {
         try {
-          await Api.extractionAdd(parsedRequestNo, recordCountNum, extractionExtractor, extractionSupervisor)
+          await Api.extractionAdd(parsedRequestNo, recordCountNum, extractionExtractor, extractionSupervisor, extractionRemark)
           message.success('已写入台账，提取记录已登记')
         } catch (e: any) {
           message.success('已写入台账'); message.error(e.message || '提取记录登记失败')
@@ -374,15 +374,15 @@ export function useLedger(
       setLedgerParsed(null); setLedgerPasteText('')
       setExtractionRecordCount(''); setExtractionExtractor(''); setExtractionSupervisor(''); setExtractionRemark('')
     } catch (e: any) { message.error(e.message || '写入失败') }
-  }, [ledgerParsed, dataMode, offlineMode, dbUrl, fetchLedger, persistLocalLedger, message, modal, ledgerData, extractionRecordCount, extractionExtractor, extractionSupervisor])
+  }, [ledgerParsed, dataMode, offlineMode, dbUrl, fetchLedger, persistLocalLedger, message, modal, ledgerData, extractionRecordCount, extractionExtractor, extractionSupervisor, extractionRemark, showDeletedLedger])
 
   const deleteLedgerRecord = useCallback((record: LedgerRecord) => {
     if (dataMode !== 'local' && !offlineMode && record._dbId) {
       Api.ledgerDelete(record._dbId).then(() => { message.success('已删除'); fetchLedger(); if (showDeletedLedger) fetchDeletedL() }).catch(e => message.error(e.message))
       return
     }
-    record._deleted = true; setLedgerData([...ledgerData]); persistLocalLedger()
-    if (showDeletedLedger) setDeletedLedgerData(dd => [...dd, record])
+    setLedgerData(prev => prev.map(r => r === record ? { ...r, _deleted: true } : r)); persistLocalLedger()
+    if (showDeletedLedger) setDeletedLedgerData(dd => [...dd, { ...record, _deleted: true }])
     message.success('已删除')
   }, [ledgerData, dataMode, offlineMode, dbUrl, persistLocalLedger, fetchLedger, showDeletedLedger])
 
@@ -399,7 +399,7 @@ export function useLedger(
       Api.ledgerRestore(record._dbId).then(() => { message.success('已恢复'); fetchLedger(); fetchDeletedL() }).catch(e => message.error(e.message))
       return
     }
-    record._deleted = false; setLedgerData([...ledgerData]); persistLocalLedger()
+    setLedgerData(prev => prev.map(r => r === record ? { ...r, _deleted: false } : r)); persistLocalLedger()
     setDeletedLedgerData(dd => dd.filter(d => d._dbId !== record._dbId)); message.success('已恢复')
   }, [ledgerData, dataMode, offlineMode, persistLocalLedger, fetchLedger])
 

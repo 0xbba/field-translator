@@ -9,7 +9,7 @@ export async function writeLog(tableName, { operation, recordId, fieldName, oldV
   try {
     await pool.query(
       `INSERT INTO ${tableName} (operation, record_id, field_name, old_value, new_value, user_id, user_name, operation_date) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
-      [operation, recordId, fieldName || null, oldValue || null, newValue || null, userId || null, userName || null]
+      [operation, recordId, fieldName ?? null, oldValue ?? null, newValue ?? null, userId ?? null, userName ?? null]
     )
   } catch (err) {
     console.error(`[writeLog:${tableName}]`, err.message)

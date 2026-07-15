@@ -117,7 +117,7 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
             <Descriptions.Item label="申请时间"><Input size="small" value={ledgerParsed.requestTime} onChange={e => setLedgerParsed({ ...ledgerParsed, requestTime: e.target.value })} style={{ width: '100%' }} /></Descriptions.Item>
             <Descriptions.Item label="处理人"><Input size="small" value={ledgerParsed.processor} onChange={e => setLedgerParsed({ ...ledgerParsed, processor: e.target.value })} style={{ width: '100%' }} /></Descriptions.Item>
             <Descriptions.Item label="完成时间">
-              {ledgerParsed.finishTime ? (
+              {ledgerParsed.finishTime != null && ledgerParsed.finishTime !== '' ? (
                 <Input size="small" value={ledgerParsed.finishTime} onChange={e => setLedgerParsed({ ...ledgerParsed, finishTime: e.target.value })} style={{ width: '100%' }} />
               ) : (
                 <Input size="small" disabled placeholder="当前时间" style={{ width: '100%' }} />

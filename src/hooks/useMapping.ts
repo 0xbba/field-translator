@@ -146,12 +146,13 @@ export function useMapping(
       if (items.length === 0) { message.warning('未识别到有效数据'); return }
       let added = 0
       const newItems: MappingItem[] = []
+      let updatedData = mappingData
       for (const item of items) {
-        const existing = mappingData.findIndex(m => m.original === item.original && !m._deleted)
-        if (existing >= 0) { mappingData[existing].chinese = item.chinese; added++ }
+        const existing = updatedData.findIndex(m => m.original === item.original && !m._deleted)
+        if (existing >= 0) { updatedData = updatedData.map((m, i) => i === existing ? { ...m, chinese: item.chinese } : m); added++ }
         else { newItems.push(item); added++ }
       }
-      setMappingData([...mappingData, ...newItems])
+      setMappingData([...updatedData, ...newItems])
       if (dataMode !== 'local' && !offlineMode) {
         Api.importItems(newItems).then(res => {
           message.success(`导入完成，新增 ${res.inserted} 条，跳过 ${res.skipped} 条`)
