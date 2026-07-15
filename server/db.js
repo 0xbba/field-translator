@@ -1,5 +1,12 @@
 import pg from 'pg'
 
+// TIMESTAMP WITHOUT TIME ZONE (OID 1114) 默认返回 Date 对象（假定 UTC），
+// JSON.stringify 会将其转为 UTC ISO 字符串（如 2023-07-26T01:33:06.000Z），
+// 前端按本地时区解析后东八区会 +8h，导致显示偏移。
+// 改为直接返回 PostgreSQL 原始字符串（如 2023-07-26 09:33:06），避免隐式时区转换。
+const { types } = pg
+types.setTypeParser(1114, (val) => val)
+
 // 数据库配置（环境变量 → 通用默认值，本地开发请通过环境变量传入实际值）
 export const pgHost = process.env.PGHOST || 'localhost'
 export const pgPort = parseInt(process.env.PGPORT || '5432', 10)

@@ -68,7 +68,8 @@ export default function LedgerManagePage({ ledgerHook }: LedgerManagePageProps) 
     setExtractionLoading(true)
     try {
       const data = await Api.extractionList(requestNo)
-      setExtractionData(data)
+      // 只展示未删除的提取记录
+      setExtractionData(data.filter((r: ExtractionRecord) => r.isVisible !== false))
     } catch (e: any) {
       message.error(e.message || '获取提取记录失败')
     } finally {

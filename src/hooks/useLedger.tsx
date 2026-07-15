@@ -160,41 +160,10 @@ export function useLedger(
 
     const parsedRequestNo = ledgerParsed.requestNo
 
-    // ---- 提取记录逻辑（在写入台账前检查） ----
+    // ---- 提取记录逻辑：取数条数和取数人都不为空才插入（0条也是有效条数） ----
     const recordCountNum = parseInt(extractionRecordCount, 10)
-    const hasExtraction = !isNaN(recordCountNum) && recordCountNum > 0
-    if (hasExtraction && dataMode === 'database' && !offlineMode) {
-      try {
-        const existingExtractions = await Api.extractionList(parsedRequestNo)
-        if (existingExtractions.length > 0) {
-          // 弹窗确认"该数据已经登记过XX条是否再次登记"
-          await new Promise<void>((resolve, reject) => {
-            modal.confirm({
-              title: `数据单号 ${parsedRequestNo} 已有提取记录`,
-              content: (
-                <div>
-                  <p style={{ marginBottom: 8 }}>该数据已经登记过提取记录，是否再次登记？</p>
-                  <Table size="small" pagination={false} dataSource={existingExtractions} rowKey="id" columns={[
-                    { title: '数据条数', dataIndex: 'recordCount', width: 100 },
-                    { title: '取数人', dataIndex: 'extractor', width: 100 },
-                    { title: '监督人', dataIndex: 'supervisor', width: 100 },
-                    { title: '时间', dataIndex: 'createDate', width: 160 },
-                  ]} />
-                </div>
-              ),
-              okText: '继续登记',
-              cancelText: '取消',
-              width: 600,
-              onOk: () => resolve(),
-              onCancel: () => reject(new Error('cancelled')),
-            })
-          })
-        }
-      } catch (e: any) {
-        if (e.message === 'cancelled') return
-        // 检查失败不影响主流程
-      }
-    }
+    const hasExtraction = (extractionRecordCount.trim() !== '' && !isNaN(recordCountNum))
+      && !!extractionExtractor.trim()
 
     // ---- 重复检测（在线 + 本地） ----
     let existing: LedgerRecord | null = null
@@ -220,6 +189,12 @@ export function useLedger(
       for (const key of Object.keys(diffLabels)) {
         const newVal = (ledgerParsed as any)[key] ?? ''
         const oldVal = (deletedExisting as any)[key] ?? ''
+        if (key === 'finishTime' && (!newVal || oldVal)) continue
+        if ((key === 'requestTime' || key === 'finishTime') && oldVal && newVal) {
+          const oldTs = new Date(oldVal).getTime()
+          const newTs = new Date(newVal).getTime()
+          if (!isNaN(oldTs) && !isNaN(newTs) && oldTs === newTs) continue
+        }
         if (newVal !== oldVal && newVal !== '') fields[key] = newVal
       }
 
@@ -286,6 +261,14 @@ export function useLedger(
       for (const key of Object.keys(diffLabels)) {
         const newVal = (ledgerParsed as any)[key] ?? ''
         const oldVal = (existing as any)[key] ?? ''
+        // finishTime：空值不覆盖；数据库已有值不覆盖（避免NOW()与实际完成时间差几秒反复提示）
+        if (key === 'finishTime' && (!newVal || oldVal)) continue
+        // 时间字段：比较时间戳，相同则跳过（数据库存UTC，解析出本地时间，字符串不同但时刻相同）
+        if ((key === 'requestTime' || key === 'finishTime') && oldVal && newVal) {
+          const oldTs = new Date(oldVal).getTime()
+          const newTs = new Date(newVal).getTime()
+          if (!isNaN(oldTs) && !isNaN(newTs) && oldTs === newTs) continue
+        }
         if (newVal !== oldVal && newVal !== '') fields[key] = newVal
       }
 

@@ -261,12 +261,12 @@ async function fetchAndRenderExtractionRecords(requestNo) {
 
   try {
     const records = await apiRequest(`/api/extraction/${encodeURIComponent(requestNo)}`)
-    const visibleRecords = records.filter(r => r.isVisible)
-    const deletedRecords = records.filter(r => !r.isVisible)
+    // 只展示未删除的提取记录
+    const visibleRecords = records.filter(r => r.isVisible !== false)
 
     section.style.display = ''
 
-    if (records.length === 0) {
+    if (visibleRecords.length === 0) {
       listEl.innerHTML = '<div class="empty">暂无提取记录</div>'
       badge.style.display = 'none'
       return
@@ -279,9 +279,6 @@ async function fetchAndRenderExtractionRecords(requestNo) {
     let html = ''
     for (const r of visibleRecords) {
       html += renderExtCard(r)
-    }
-    for (const r of deletedRecords) {
-      html += renderExtCard(r, true)
     }
     listEl.innerHTML = html
     // 如果当前处于展开状态，更新 maxHeight
@@ -382,8 +379,8 @@ function buildDiffDisplay(existing, parsed) {
     const oldVal = String(existing[key] ?? '').trim()
     let newVal = String(parsed[key] ?? '').trim()
 
-    // finishTime 为空 = 使用当前时间，不视为变更，不应覆盖已有值
-    if (key === 'finishTime' && !newVal) continue
+    // finishTime：空值=用当前时间不覆盖；数据库已有值=不覆盖（避免NOW()与实际完成时间差几秒反复提示变更）
+    if (key === 'finishTime' && (!newVal || oldVal)) continue
 
     // 时间字段：比较时间戳，相同则跳过（数据库存UTC，解析出本地时间，字符串不同但时刻相同）
     if ((key === 'requestTime' || key === 'finishTime') && oldVal && newVal) {
@@ -482,6 +479,8 @@ $('btn-write').addEventListener('click', async () => {
   const extractor = $('extractor').value.trim()
   const supervisor = $('supervisor').value.trim()
   const remark = $('remark').value.trim()
+  // 取数条数和取数人都不为空才插入提取记录（0条也是有效条数）
+  const hasExtraction = ($('record-count').value.trim() !== '' && !isNaN(recordCount)) && !!extractor
 
   try {
     $('btn-write').disabled = true
@@ -506,18 +505,22 @@ $('btn-write').addEventListener('click', async () => {
 
       if (diffs.length === 0) {
         // 无变更，检查是否有提取记录要登记
-        if (recordCount > 0 && requestNo) {
+        if (hasExtraction && requestNo) {
           await apiRequest('/api/extraction', {
             method: 'POST',
             body: JSON.stringify({
               request_no: requestNo,
-              record_count: recordCount,
+              record_count: recordCount || 0,
               extractor: extractor || undefined,
               supervisor: supervisor || undefined,
               remark: remark || undefined,
             })
           })
-          showMsg('msg-area', `台账无变化，提取记录已登记（${recordCount}条）`, 'success')
+          showMsg('msg-area', `台账无变化，提取记录已登记`, 'success')
+          $('record-count').value = ''
+          $('remark').value = ''
+          // 刷新提取记录列表
+          await fetchAndRenderExtractionRecords(requestNo)
         } else {
           showMsg('msg-area', '数据无变化，无需更新', 'info')
         }
@@ -540,18 +543,22 @@ $('btn-write').addEventListener('click', async () => {
 
       if (checkedDiffs.length === 0) {
         // 没有勾选任何变更，检查是否有提取记录要登记
-        if (recordCount > 0 && requestNo) {
+        if (hasExtraction && requestNo) {
           await apiRequest('/api/extraction', {
             method: 'POST',
             body: JSON.stringify({
               request_no: requestNo,
-              record_count: recordCount,
+              record_count: recordCount || 0,
               extractor: extractor || undefined,
               supervisor: supervisor || undefined,
               remark: remark || undefined,
             })
           })
-          showMsg('msg-area', `未选择任何变更，提取记录已登记（${recordCount}条）`, 'success')
+          showMsg('msg-area', `未选择任何变更，提取记录已登记`, 'success')
+          $('record-count').value = ''
+          $('remark').value = ''
+          // 刷新提取记录列表
+          await fetchAndRenderExtractionRecords(requestNo)
         } else {
           showMsg('msg-area', '未选择任何变更', 'info')
         }
@@ -605,12 +612,12 @@ $('btn-write').addEventListener('click', async () => {
 
     let msg = needUpdate ? '台账已更新' : '台账已写入'
 
-    if (recordCount > 0 && requestNo) {
+    if (hasExtraction && requestNo) {
       await apiRequest('/api/extraction', {
         method: 'POST',
         body: JSON.stringify({
           request_no: requestNo,
-          record_count: recordCount,
+          record_count: recordCount || 0,
           extractor: extractor || undefined,
           supervisor: supervisor || undefined,
           remark: remark || undefined,
@@ -620,10 +627,13 @@ $('btn-write').addEventListener('click', async () => {
     }
 
     showMsg('msg-area', msg, 'success')
+    // 写入成功后清空数据条数、备注，避免重复提交
+    $('record-count').value = ''
+    $('remark').value = ''
     // 写入成功后刷新状态和提取记录
     if (requestNo) {
-      checkAndRenderLedgerStatus(requestNo)
-      fetchAndRenderExtractionRecords(requestNo)
+      await checkAndRenderLedgerStatus(requestNo)
+      await fetchAndRenderExtractionRecords(requestNo)
     }
   } catch (e) {
     if (e.message !== '__CANCELLED__') {
