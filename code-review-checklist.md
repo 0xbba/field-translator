@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '0b65dc4c-7ef7-4182-90dc-39d3ef8aae67'
-  PropagateID: '0b65dc4c-7ef7-4182-90dc-39d3ef8aae67'
-  ReservedCode1: 'af42b3ca-02e1-4bd6-809c-2b11be4e08c0'
-  ReservedCode2: 'af42b3ca-02e1-4bd6-809c-2b11be4e08c0'
+  ProduceID: '74485f16-d9d9-46c0-bf9e-e0edb391b6a7'
+  PropagateID: '74485f16-d9d9-46c0-bf9e-e0edb391b6a7'
+  ReservedCode1: '0bcded6c-387e-4e27-b5b7-ad9da8e65504'
+  ReservedCode2: '0bcded6c-387e-4e27-b5b7-ad9da8e65504'
 ---
 
 # data-team-tools 代码审查清单
@@ -40,7 +40,7 @@ AIGC:
 
 ## P2 - 应该修复
 
-- [ ] 20. **[架构]** `useLedger.tsx` 457行hook承载20+state和35+返回值，严重违反单一职责，应拆分
+- [x] 20. **[架构]** `useLedger.tsx` 457行hook承载20+state和35+返回值，严重违反单一职责，应拆分
 - [x] 21. **[规范]** `useLedger.tsx:187,259` diff比较逻辑完全重复（已删除记录路径和更新路径），应抽取 `computeDiff` 函数
 - [x] 22. **[安全]** `manifest.json:34` `host_permissions` 对所有站点开放请求权限
 - [x] 23. **[安全]** `server.js:22` CORS 全开放 `cors()`，生产应限制 Origin
