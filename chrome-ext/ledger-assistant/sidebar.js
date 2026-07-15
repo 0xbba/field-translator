@@ -493,9 +493,10 @@ $('btn-write').addEventListener('click', async () => {
     let ledgerId = null
     let needUpdate = false
     let existingRecord = null
+    let check = null
 
     if (requestNo) {
-      const check = await apiRequest(`/api/ledger/check/${encodeURIComponent(requestNo)}`)
+      check = await apiRequest(`/api/ledger/check/${encodeURIComponent(requestNo)}`)
       if (check.exists) {
         ledgerId = check.record._dbId || check.record.id
         needUpdate = true
@@ -523,7 +524,6 @@ $('btn-write').addEventListener('click', async () => {
           showMsg('msg-area', `台账无变化，提取记录已登记`, 'success')
           $('record-count').value = ''
           $('remark').value = ''
-          // 刷新提取记录列表
           await fetchAndRenderExtractionRecords(requestNo)
         } else {
           showMsg('msg-area', '数据无变化，无需更新', 'info')
@@ -561,7 +561,6 @@ $('btn-write').addEventListener('click', async () => {
           showMsg('msg-area', `未选择任何变更，提取记录已登记`, 'success')
           $('record-count').value = ''
           $('remark').value = ''
-          // 刷新提取记录列表
           await fetchAndRenderExtractionRecords(requestNo)
         } else {
           showMsg('msg-area', '未选择任何变更', 'info')
@@ -584,7 +583,6 @@ $('btn-write').addEventListener('click', async () => {
       for (const d of checkedDiffs) {
         const snakeKey = camelToSnake[d.key]
         if (snakeKey) {
-          // 空值 finishTime 不放入 body（由后端 DEFAULT NOW() 处理）
           if (d.key === 'finishTime' && !parsed.finishTime) continue
           body[snakeKey] = parsed[d.key]
         }
@@ -593,7 +591,37 @@ $('btn-write').addEventListener('click', async () => {
       if (needUpdate && ledgerId) {
         await apiRequest(`/api/ledger/${ledgerId}`, { method: 'PUT', body: JSON.stringify(body) })
       }
+    } else if (check.deletedRecord) {
+      // 已删除记录：恢复 + 更新变更字段
+      showMsg('msg-area', '正在恢复...', 'info')
+      const deletedId = check.deletedRecord._dbId || check.deletedRecord.id
+      await apiRequest(`/api/ledger/${deletedId}/restore`, { method: 'PUT' })
+
+      // 计算变更字段并更新
+      const diffs = buildDiffDisplay(check.deletedRecord, parsed)
+      if (diffs.length > 0) {
+        const camelToSnake = {
+          requestNo: 'request_no', requestTime: 'request_time', applicant: 'applicant',
+          applicantPhone: 'applicant_phone', applicantDept: 'applicant_dept',
+          requestTitle: 'request_title', requestReason: 'request_reason',
+          requestDataContent: 'request_data_content', processor: 'processor',
+          finishTime: 'finish_time',
+        }
+        const body = {}
+        for (const d of diffs) {
+          const snakeKey = camelToSnake[d.key]
+          if (snakeKey) {
+            if (d.key === 'finishTime' && !parsed.finishTime) continue
+            body[snakeKey] = parsed[d.key]
+          }
+        }
+        if (Object.keys(body).length > 0) {
+          await apiRequest(`/api/ledger/${deletedId}`, { method: 'PUT', body: JSON.stringify(body) })
+        }
+      }
+      ledgerId = deletedId
     } else {
+      // 全新记录
       showMsg('msg-area', '正在写入...', 'info')
       // 新增模式：提交全部字段
       const body = {

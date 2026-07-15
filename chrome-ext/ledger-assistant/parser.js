@@ -1,3 +1,7 @@
+// @sync-from: src/utils/ledger.ts
+// 本文件是 ledger.ts parseLedgerText() 的纯 JS 移植版。
+// 修改 ledger.ts 后务必同步修改本文件，否则会导致插件与网页版解析结果不一致。
+//
 // 从 ledger.ts 移植的纯 JS 版本解析函数
 function parseLedgerText(text) {
   const rawLines = text.split('\n')

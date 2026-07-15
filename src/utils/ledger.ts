@@ -1,5 +1,9 @@
 import type { LedgerRecord } from '../types'
 
+// @sync-to: chrome-ext/ledger-assistant/parser.js
+// 本文件中的 parseLedgerText() 已手动移植到 parser.js（纯 JS 版，供 Chrome 插件使用）。
+// 修改本函数后务必同步修改 parser.js，否则会导致插件与网页版解析结果不一致。
+
 /** 解析数据需求流程网页文本为台账字段 */
 export function parseLedgerText(text: string): Omit<LedgerRecord, '_dbId' | '_deleted'> | null {
   const rawLines = text.split('\n')

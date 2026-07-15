@@ -33,7 +33,7 @@ export default function LedgerParsePage({ ledgerHook }: LedgerParsePageProps) {
     if (ledgerParsed && !extractionExtractor && currentUser?.displayName) {
       setExtractionExtractor(currentUser.displayName)
     }
-  }, [ledgerParsed])
+  }, [ledgerParsed, extractionExtractor, currentUser?.displayName])
 
   // 获取在用用户 displayName 列表供监督人选择
   const [supervisorOptions, setSupervisorOptions] = useState<{ value: string }[]>([])

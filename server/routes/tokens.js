@@ -94,20 +94,19 @@ export async function apiTokenMiddleware(req, res, next) {
     return next()
   }
   try {
-    // 遍历所有 token 做 bcrypt 比较
-    const result = await pool.query('SELECT id, user_id, token_hash, name, expires_at FROM dt_api_tokens')
+    // 只查未过期的 token（expires_at 为空或大于当前时间）
+    const result = await pool.query(
+      "SELECT id, user_id, token_hash, name, expires_at FROM dt_api_tokens WHERE expires_at IS NULL OR expires_at > NOW()"
+    )
     let matched = null
     for (const row of result.rows) {
-      if (bcrypt.compareSync(rawToken, row.token_hash)) {
+      const isMatch = await bcrypt.compare(rawToken, row.token_hash)
+      if (isMatch) {
         matched = row
         break
       }
     }
     if (!matched) return res.status(401).json({ error: '无效的API Token' })
-    // 检查是否过期
-    if (matched.expires_at && new Date(matched.expires_at) < new Date()) {
-      return res.status(401).json({ error: 'API Token已过期' })
-    }
     // 更新最后使用时间（确保写入完成再继续）
     try {
       await pool.query('UPDATE dt_api_tokens SET last_used = NOW() WHERE id = $1', [matched.id])
