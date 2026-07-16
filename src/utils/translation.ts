@@ -59,14 +59,21 @@ export function parsePastedHeaders(text: string): string[] {
     const fieldList = afterSelect.substring(0, cutPos).trim()
     if (!fieldList) return []
 
-    // 3) 按括号平衡分割顶层逗号（忽略 CASE WHEN / 函数内部的逗号）
+    // 3) 按括号/CASE平衡分割顶层逗号（忽略 CASE WHEN / 函数内部的逗号）
     const parts: string[] = []
     let start = 0
-    let d = 0
+    let d = 0       // 括号深度
+    let caseD = 0   // CASE 嵌套深度
     for (let i = 0; i < fieldList.length; i++) {
       if (fieldList[i] === '(') { d++; continue }
       if (fieldList[i] === ')') { d--; continue }
-      if (fieldList[i] === ',' && d === 0) {
+      // 追踪 CASE/END 关键字（仅在括号外，因为括号内的CASE是子查询的）
+      if (d === 0) {
+        const rest = fieldList.substring(i)
+        if (/^\bCASE\b/i.test(rest)) { caseD++; i += 3; continue }
+        if (caseD > 0 && /^\bEND\b/i.test(rest)) { caseD--; i += 2; continue }
+      }
+      if (fieldList[i] === ',' && d === 0 && caseD === 0) {
         const seg = fieldList.substring(start, i).trim()
         if (seg) parts.push(seg)
         start = i + 1
@@ -83,6 +90,9 @@ export function parsePastedHeaders(text: string): string[] {
     return parts.map(p => {
       const asMatch = p.match(/\bAS\s+["`]?(\w+)["`]?\s*$/i)
       if (asMatch) return asMatch[1]
+      // 匹配 CASE...END 后跟别名（无AS关键字），如 CASE WHEN ... END bumen
+      const endAlias = p.match(/\bEND\s+(\w+)\s*$/i)
+      if (endAlias) return endAlias[1]
       // 匹配括号闭合后空格跟别名，如 SUM(...) tz_m3
       const parenAlias = p.match(/\)\s+(\w+)\s*$/)
       if (parenAlias) return parenAlias[1]
