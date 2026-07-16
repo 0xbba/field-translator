@@ -10,6 +10,7 @@
  * 5. 创建测试用户
  */
 import pg from 'pg'
+import bcrypt from 'bcryptjs'
 
 const TEST_SCHEMA = `test_schema_${process.pid}`
 
@@ -28,6 +29,19 @@ export default async function setup() {
 
   // 等建表完成
   await ensureSchemaAndTables()
+
+  // 测试环境：将 admin 密码重置为固定值（生产环境是随机密码）
+  const client = new pg.Client({
+    host: process.env.PGHOST,
+    port: parseInt(process.env.PGPORT, 10),
+    user: process.env.PGUSER,
+    password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+  })
+  await client.connect()
+  const hash = bcrypt.hashSync('admin123', 10)
+  await client.query(`UPDATE ${TEST_SCHEMA}.dt_users SET password_hash = $1 WHERE username = 'admin'`, [hash])
+  await client.end()
 
   // 用 supertest 走 API 创建测试用户
   const { default: request } = await import('supertest')

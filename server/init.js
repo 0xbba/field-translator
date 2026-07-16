@@ -242,12 +242,24 @@ export async function ensureSchemaAndTables() {
     // 创建默认管理员（仅在 users 表为空时）
     const userCount = await client.query('SELECT COUNT(*) as cnt FROM dt_users')
     if (Number(userCount.rows[0].cnt) === 0) {
-      const hash = bcrypt.hashSync('admin123', 10)
+      // 生成随机密码（大小写字母+数字，16位）
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'
+      let randomPwd = ''
+      for (let i = 0; i < 16; i++) randomPwd += chars[Math.floor(Math.random() * chars.length)]
+      const hash = bcrypt.hashSync(randomPwd, 10)
       await client.query(
         'INSERT INTO dt_users (username, password_hash, role, display_name) VALUES ($1, $2, $3, $4)',
         ['admin', hash, 'admin', '管理员']
       )
-      console.log('[init] 默认管理员已创建 (admin / admin123，请及时修改密码)')
+      console.log('')
+      console.log('========================================================')
+      console.log('  [安全提示] 首次部署已创建管理员账号')
+      console.log(`  用户名: admin`)
+      console.log(`  密码:   ${randomPwd}`)
+      console.log('  ⚠ 此密码仅展示一次，请立即登录后修改密码！')
+      console.log('  ⚠ 重启服务不会再次显示，请妥善保管。')
+      console.log('========================================================')
+      console.log('')
     }
 
     // 权限key迁移：将旧权限key自动转换为新的细粒度key，清理无效的父节点key
