@@ -31,9 +31,5 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "host_permissions": [
-    "https://scitsmpro.paas.sc.ctc.com/*",
-    "http://localhost/*",
-    "http://127.0.0.1/*"
-  ]
+  "host_permissions": ["<all_urls>"]
 }
