@@ -1,7 +1,7 @@
 {
   "name": "data-team-tools",
   "private": true,
-  "version": "1.11.3",
+  "version": "1.13.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
