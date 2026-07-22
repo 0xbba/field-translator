@@ -87,6 +87,14 @@ export interface TabItem {
   label: string
 }
 
+// ============ 台账统计 ============
+export interface LedgerStatsRow {
+  applicant: string
+  applicantDept: string
+  processCount: number
+  totalDataVolume: number
+}
+
 // ============ 用户/角色表单 ============
 export interface UserForm {
   username: string

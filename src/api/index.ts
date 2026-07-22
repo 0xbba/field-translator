@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import { authHeaders, jsonHeaders } from '../utils/auth'
-import type { MappingItem, LedgerRecord, LogEntry, RoleForm, UserForm, ExtractionRecord, ApiToken, Announcement, AuthUser, UserItem, RoleItem, PermissionNode } from '../types'
+import type { MappingItem, LedgerRecord, LogEntry, RoleForm, UserForm, ExtractionRecord, ApiToken, Announcement, AuthUser, UserItem, RoleItem, PermissionNode, LedgerStatsRow } from '../types'
 
 const BASE = ''
 
@@ -163,6 +163,22 @@ export const Api = {
     return raw.map((r: any) => ({ ...mapLedgerRecord(r), _deleted: true }))
   },
   async ledgerRestore(id: number) { return request(`/api/ledger/${id}/restore`, { method: 'PUT' }) },
+  async ledgerStats(startDate?: string, endDate?: string, timeField?: string): Promise<LedgerStatsRow[]> {
+    const params = new URLSearchParams()
+    if (startDate) params.set('startDate', startDate)
+    if (endDate) params.set('endDate', endDate)
+    if (timeField) params.set('timeField', timeField)
+    const qs = params.toString()
+    return request(`/api/ledger/stats${qs ? '?' + qs : ''}`)
+  },
+  async ledgerStatsDetail(applicant: string, startDate?: string, endDate?: string, timeField?: string): Promise<any[]> {
+    const params = new URLSearchParams()
+    params.set('applicant', applicant)
+    if (startDate) params.set('startDate', startDate)
+    if (endDate) params.set('endDate', endDate)
+    if (timeField) params.set('timeField', timeField)
+    return request(`/api/ledger/stats/detail?${params.toString()}`)
+  },
 
   // ============ 提取记录 ============
   async extractionList(requestNo: string): Promise<ExtractionRecord[]> {

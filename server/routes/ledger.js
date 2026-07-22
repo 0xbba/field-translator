@@ -7,6 +7,126 @@ const router = Router()
 
 const LOG_TABLE = 'dt_data_request_ledger_log'
 
+// 查询台账统计（按发起人汇总流程数量和数据总量）
+router.get('/stats', requirePerm('ledger_view'), async (req, res) => {
+  try {
+    const { startDate, endDate, timeField } = req.query
+    // 时间字段映射：request_time=申请时间, finish_time=完成时间, extraction_time=取数时间
+    const timeFieldMap = {
+      request_time: 'l.request_time',
+      finish_time: 'l.finish_time',
+      extraction_time: 'e.first_create_date',
+    }
+    const selectedTimeField = timeFieldMap[timeField] || 'l.create_date'
+    const conditions = ['l.is_visible = true']
+    const params = []
+    let idx = 1
+    if (startDate) {
+      conditions.push(`${selectedTimeField} >= $${idx}`)
+      params.push(startDate)
+      idx++
+    }
+    if (endDate) {
+      conditions.push(`${selectedTimeField} <= $${idx}`)
+      params.push(endDate + ' 23:59:59')
+      idx++
+    }
+    const where = 'WHERE ' + conditions.join(' AND ')
+    const sql = `
+      SELECT
+        l.applicant,
+        STRING_AGG(DISTINCT l.applicant_dept, '、') AS applicant_dept,
+        COUNT(*) AS process_count,
+        COALESCE(SUM(e.total_count), 0) AS total_data_volume
+      FROM dt_data_request_ledger l
+      LEFT JOIN (
+        SELECT request_no, SUM(record_count) AS total_count, MIN(create_date) AS first_create_date
+        FROM dt_data_extraction_records
+        WHERE is_visible = true
+        GROUP BY request_no
+      ) e ON l.request_no = e.request_no
+      ${where}
+      GROUP BY l.applicant
+      ORDER BY total_data_volume DESC
+    `
+    const result = await pool.query(sql, params)
+    res.json(result.rows.map(r => ({
+      applicant: r.applicant || '',
+      applicantDept: r.applicant_dept || '',
+      processCount: Number(r.process_count) || 0,
+      totalDataVolume: Number(r.total_data_volume) || 0,
+    })))
+  } catch (err) {
+    console.error('[GET /api/ledger/stats]', err)
+    res.status(500).json({ error: safeError(err) })
+  }
+})
+
+// 查询某发起人在指定时间范围内的台账明细（按提取记录逐条展开）
+router.get('/stats/detail', requirePerm('ledger_view'), async (req, res) => {
+  try {
+    const { applicant, startDate, endDate, timeField } = req.query
+    if (!applicant) return res.status(400).json({ error: 'applicant is required' })
+    const timeFieldMap = {
+      request_time: 'l.request_time',
+      finish_time: 'l.finish_time',
+      extraction_time: 'ex.create_date',
+    }
+    const selectedTimeField = timeFieldMap[timeField] || 'l.create_date'
+    const conditions = ['l.is_visible = true', 'l.applicant = $1']
+    const params = [applicant]
+    let idx = 2
+    if (startDate) {
+      conditions.push(`${selectedTimeField} >= $${idx}`)
+      params.push(startDate)
+      idx++
+    }
+    if (endDate) {
+      conditions.push(`${selectedTimeField} <= $${idx}`)
+      params.push(endDate + ' 23:59:59')
+      idx++
+    }
+    const where = 'WHERE ' + conditions.join(' AND ')
+    const sql = `
+      SELECT l.id, l.request_no, l.request_time, l.applicant, l.applicant_dept,
+             l.request_title, l.processor, l.finish_time, l.create_date,
+             COALESCE(ex.record_count, 0) AS record_count,
+             ex.extractor, ex.supervisor, ex.remark AS extraction_remark,
+             ex.create_date AS extraction_time
+      FROM dt_data_request_ledger l
+      LEFT JOIN LATERAL (
+        SELECT id, record_count, extractor, supervisor, remark, create_date
+        FROM dt_data_extraction_records
+        WHERE request_no = l.request_no AND is_visible = true
+        ORDER BY create_date ASC
+      ) ex ON true
+      ${where}
+      ORDER BY l.create_date DESC, ex.create_date ASC
+    `
+    const result = await pool.query(sql, params)
+    res.json(result.rows.map((r, i) => ({
+      id: r.id * 1000 + i,
+      ledgerId: r.id,
+      requestNo: r.request_no || '',
+      requestTime: r.request_time || '',
+      applicant: r.applicant || '',
+      applicantDept: r.applicant_dept || '',
+      requestTitle: r.request_title || '',
+      processor: r.processor || '',
+      finishTime: r.finish_time || '',
+      createDate: r.create_date || '',
+      recordCount: Number(r.record_count) || 0,
+      extractor: r.extractor || '',
+      supervisor: r.supervisor || '',
+      extractionRemark: r.extraction_remark || '',
+      extractionTime: r.extraction_time || '',
+    })))
+  } catch (err) {
+    console.error('[GET /api/ledger/stats/detail]', err)
+    res.status(500).json({ error: safeError(err) })
+  }
+})
+
 // 查询台账列表（可搜索分页）
 router.get('/', async (req, res) => {
   try {

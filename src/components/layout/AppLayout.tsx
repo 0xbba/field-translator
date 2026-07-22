@@ -192,7 +192,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({
           )}
 
           <Layout.Content style={{ padding: '1.5rem', background: '#f5f5f5', overflow: 'auto', flex: 1 }}>
-            {contentMap[tab]}
+            {openTabs.map(t => (
+              <div key={t.key} style={{ display: t.key === tab ? 'block' : 'none', height: t.key === tab ? 'auto' : 0 }}>
+                {contentMap[t.key]}
+              </div>
+            ))}
           </Layout.Content>
         </Layout>
       </Layout>

@@ -37,6 +37,7 @@ export default async function setup() {
     user: process.env.PGUSER,
     password: process.env.PGPASSWORD,
     database: process.env.PGDATABASE,
+    ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : undefined,
   })
   await client.connect()
   const hash = bcrypt.hashSync('admin123', 10)
@@ -66,6 +67,7 @@ export default async function setup() {
       user: process.env.PGUSER,
       password: process.env.PGPASSWORD,
       database: process.env.PGDATABASE,
+      ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : undefined,
     })
     try {
       await client.connect()

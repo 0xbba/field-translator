@@ -7,7 +7,7 @@ import {
   UserOutlined, TeamOutlined, HddOutlined,
   DatabaseOutlined, SettingOutlined,
   TableOutlined, FormOutlined,
-  NotificationOutlined,
+  NotificationOutlined, BarChartOutlined,
 } from '@ant-design/icons'
 import { AppContext } from './contexts/AppContext'
 import { useAuth } from './hooks/useAuth'
@@ -29,6 +29,7 @@ import InsertGenPage from './components/pages/InsertGenPage'
 import MultidatePage from './components/pages/MultidatePage'
 import LedgerParsePage from './components/pages/LedgerParsePage'
 import LedgerManagePage from './components/pages/LedgerManagePage'
+import LedgerStatsPage from './components/pages/LedgerStatsPage'
 import UsersPage from './components/pages/UsersPage'
 import RolesPage from './components/pages/RolesPage'
 import AnnouncementsPage from './components/pages/AnnouncementsPage'
@@ -106,6 +107,7 @@ function AppContent() {
     manage: 'manage_view',
     ledgerParse: 'ledger_parse',
     ledgerManage: 'ledger_view',
+    ledgerStats: 'ledger_view',
     users: 'user_manage',
     roles: 'role_manage',
     announcements: 'announcement_manage',
@@ -180,6 +182,7 @@ function AppContent() {
     { key: 'ledger-group', label: '数据需求台账', icon: <DatabaseOutlined />, children: [
       { key: 'ledgerParse', label: '解析录入', icon: <FormOutlined /> },
       ...(hasLedgerManagePerm ? [{ key: 'ledgerManage', label: '管理台账', icon: <HddOutlined /> }] : []),
+      ...(hasLedgerManagePerm ? [{ key: 'ledgerStats', label: '台账统计', icon: <BarChartOutlined /> }] : []),
     ]},
     ...((isAdmin() || hasPerm('announcement_manage')) ? [{ key: 'system-group', label: '系统管理', icon: <SettingOutlined />, children: [
       ...(isAdmin() ? [
@@ -197,6 +200,7 @@ function AppContent() {
     multidate: <PageErrorBoundary name="MultidatePage"><MultidatePage multidateHook={multidateHook} /></PageErrorBoundary>,
     ledgerParse: <PageErrorBoundary name="LedgerParsePage"><LedgerParsePage ledgerHook={ledgerHook} /></PageErrorBoundary>,
     ledgerManage: <PageErrorBoundary name="LedgerManagePage"><LedgerManagePage ledgerHook={ledgerHook} /></PageErrorBoundary>,
+    ledgerStats: <PageErrorBoundary name="LedgerStatsPage"><LedgerStatsPage /></PageErrorBoundary>,
     users: <PageErrorBoundary name="UsersPage"><UsersPage usersData={usersData} rolesData={rolesData} fetchUsers={fetchUsers} message={message} currentUser={currentUser} /></PageErrorBoundary>,
     roles: <PageErrorBoundary name="RolesPage"><RolesPage rolesData={rolesData} allPerms={allPerms} fetchRoles={fetchRoles} message={message} /></PageErrorBoundary>,
     announcements: <PageErrorBoundary name="AnnouncementsPage"><AnnouncementsPage /></PageErrorBoundary>,

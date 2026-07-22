@@ -15,6 +15,8 @@ export const pgPassword = process.env.PGPASSWORD || ''
 export const pgDatabase = process.env.PGDATABASE || 'data_team_tools'
 export const pgSchema = process.env.PGSCHEMA || 'public'
 
+export const pgSsl = process.env.PGSSL === 'true'
+
 // pgSchema 白名单校验：防止注入，只允许字母数字下划线
 if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(pgSchema)) {
   console.error(`[FATAL] PGSCHEMA "${pgSchema}" 不合法，仅允许字母/数字/下划线`)
@@ -41,4 +43,5 @@ export const pool = new pg.Pool({
   password: pgPassword,
   database: pgDatabase,
   options: `-c search_path=${pgSchema}`,
+  ssl: pgSsl ? { rejectUnauthorized: false } : undefined,
 })

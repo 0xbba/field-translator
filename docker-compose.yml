@@ -37,6 +37,7 @@ services:
       - PGPASSWORD=${PGPASSWORD:-dtapp123}
       - PGDATABASE=${PGDATABASE:-data_team_tools}
       - PGSCHEMA=${PGSCHEMA:-public}
+      - PGSSL=${PGSSL:-false}
       - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
       - PORT=3456
     restart: unless-stopped

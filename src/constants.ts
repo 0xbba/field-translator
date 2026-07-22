@@ -43,6 +43,7 @@ export const TAB_LABELS: Record<string, string> = {
   multidate: '多账期SQL',
   ledgerParse: '解析录入',
   ledgerManage: '管理台账',
+  ledgerStats: '台账统计',
   users: '用户管理',
   roles: '角色管理',
   announcements: '公告管理',
